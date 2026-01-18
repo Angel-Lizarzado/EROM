@@ -70,8 +70,8 @@ export default function Header({ categories = [] }: HeaderProps) {
     return (
         <>
             <header className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${scrolled
-                    ? 'bg-surface/95 backdrop-blur-md shadow-sm border-b border-border'
-                    : 'bg-surface border-b border-border'
+                ? 'bg-surface/95 backdrop-blur-md shadow-sm border-b border-border'
+                : 'bg-surface border-b border-border'
                 }`}>
                 <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-8">
                     {/* Mobile Menu Button & Logo */}
@@ -217,6 +217,20 @@ export default function Header({ categories = [] }: HeaderProps) {
                                     </button>
                                 ))}
                             </div>
+
+                            {/* Admin Link */}
+                            {isAuthenticated && (
+                                <div className="mt-4 pt-4 border-t border-border">
+                                    <Link
+                                        href="/admin"
+                                        onClick={() => setShowMobileMenu(false)}
+                                        className="w-full flex items-center gap-3 px-4 py-3 text-primary font-bold rounded-xl hover:bg-primary/10 transition-colors"
+                                    >
+                                        <span className="text-lg">⚙️</span>
+                                        Panel de Admin
+                                    </Link>
+                                </div>
+                            )}
                         </nav>
 
                         {/* Bottom Actions */}
