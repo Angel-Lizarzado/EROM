@@ -5,6 +5,7 @@ import { getProductById, getRelatedProducts } from '@/actions/products';
 import PriceDisplay from '@/components/PriceDisplay';
 import ProductActions from '@/components/ProductActions';
 import ProductCard from '@/components/ProductCard';
+import ProductGallery from '@/components/ProductGallery';
 
 interface ProductPageProps {
     params: Promise<{ id: string }>;
@@ -41,32 +42,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             {/* Product Details */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-                {/* Image Section */}
-                <div className="flex flex-col gap-4 w-full">
-                    <div className="w-full aspect-[3/4] lg:aspect-[4/5] overflow-hidden rounded-xl bg-gray-100 relative group">
-                        {/* Badges */}
-                        {product.isOffer && (
-                            <div className="absolute top-4 left-4 z-10">
-                                <span className="bg-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white">
-                                    Oferta
-                                </span>
-                            </div>
-                        )}
-                        {!product.isOffer && product.stock > 0 && product.stock <= 5 && (
-                            <div className="absolute top-4 left-4 z-10">
-                                <span className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-text-main">
-                                    ¡Últimas unidades!
-                                </span>
-                            </div>
-                        )}
-
-                        {/* Main Image */}
-                        <div
-                            className="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-700 group-hover:scale-105"
-                            style={{ backgroundImage: `url('${product.image}')` }}
-                        />
-                    </div>
-                </div>
+                {/* Image Section - Gallery */}
+                <ProductGallery
+                    mainImage={product.image}
+                    images={product.images || []}
+                    productName={product.name}
+                    isOffer={product.isOffer}
+                    stock={product.stock}
+                />
 
                 {/* Info Section */}
                 <div className="flex flex-col py-2 lg:py-6">

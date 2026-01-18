@@ -54,15 +54,20 @@ export async function getRelatedProducts(categoryId: number, excludeId: number, 
 export async function createProduct(data: {
     name: string;
     description: string;
+    details?: string | null;
     priceUsd: number;
     oldPriceUsd?: number | null;
     isOffer: boolean;
     stock: number;
     image: string;
+    images?: string[];
     categoryId: number;
 }): Promise<Product> {
     return prisma.product.create({
-        data,
+        data: {
+            ...data,
+            images: data.images || [],
+        },
     });
 }
 
@@ -71,11 +76,13 @@ export async function updateProduct(
     data: {
         name?: string;
         description?: string;
+        details?: string | null;
         priceUsd?: number;
         oldPriceUsd?: number | null;
         isOffer?: boolean;
         stock?: number;
         image?: string;
+        images?: string[];
         categoryId?: number;
     }
 ): Promise<Product> {

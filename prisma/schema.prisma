@@ -21,11 +21,13 @@ model Product {
   id          Int      @id @default(autoincrement())
   name        String
   description String
+  details     String?  // Especificaciones/detalles adicionales del producto
   priceUsd    Float
   oldPriceUsd Float?
   isOffer     Boolean  @default(false)
   stock       Int      @default(0)
-  image       String
+  image       String   // Imagen principal (retrocompatibilidad)
+  images      String[] // Array de URLs de imágenes adicionales
   categoryId  Int
   category    Category @relation(fields: [categoryId], references: [id])
   sales       Sale[]

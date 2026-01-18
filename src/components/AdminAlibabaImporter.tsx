@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Link2, Loader2, CheckCircle, AlertCircle, Download, X, Package, ExternalLink } from 'lucide-react';
+import { Link2, Loader2, CheckCircle, AlertCircle, Download, X, Package, ExternalLink, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { scrapeProductFromUrl, importProductFromScrape } from '@/actions/alibaba-scraper';
 
 interface Category {
@@ -12,6 +12,7 @@ interface Category {
 interface ScrapedData {
     title: string;
     description: string;
+    details: string;
     price: number;
     images: string[];
     attributes: Record<string, string>;
@@ -32,6 +33,7 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
     const [customPrice, setCustomPrice] = useState<string>('');
     const [customName, setCustomName] = useState<string>('');
     const [importSuccess, setImportSuccess] = useState(false);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const handleScrape = async () => {
         if (!url.trim()) {
@@ -43,6 +45,7 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
         setError(null);
         setScrapedData(null);
         setImportSuccess(false);
+        setCurrentImageIndex(0);
 
         const result = await scrapeProductFromUrl(url);
 
@@ -91,6 +94,19 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
         setImportSuccess(false);
         setCustomPrice('');
         setCustomName('');
+        setCurrentImageIndex(0);
+    };
+
+    const nextImage = () => {
+        if (scrapedData && currentImageIndex < scrapedData.images.length - 1) {
+            setCurrentImageIndex(currentImageIndex + 1);
+        }
+    };
+
+    const prevImage = () => {
+        if (currentImageIndex > 0) {
+            setCurrentImageIndex(currentImageIndex - 1);
+        }
     };
 
     return (
@@ -114,7 +130,7 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
                 <div className="mb-4 p-4 bg-green-100 border border-green-300 rounded-xl flex items-center gap-3">
                     <CheckCircle className="h-5 w-5 text-green-600" />
                     <div>
-                        <p className="text-green-800 font-medium">¡Producto importado!</p>
+                        <p className="text-green-800 font-medium">¡Producto importado con {scrapedData?.images.length || 0} imágenes!</p>
                         <p className="text-green-600 text-sm">Ya puedes verlo en el inventario</p>
                     </div>
                     <button onClick={handleReset} className="ml-auto text-green-600 hover:text-green-800">
@@ -163,9 +179,6 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
                     <div className="flex-1">
                         <p className="text-red-800 font-medium">Error al extraer datos</p>
                         <p className="text-red-600 text-sm">{error}</p>
-                        <p className="text-red-500 text-xs mt-2">
-                            💡 Tip: Prueba abriendo el producto en una nueva pestaña para verificar que la URL es correcta.
-                        </p>
                     </div>
                 </div>
             )}
@@ -176,34 +189,90 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
                     <div className="bg-white rounded-xl border border-orange-200 p-4">
                         <div className="flex items-center justify-between mb-3">
                             <h4 className="font-bold text-text-main">Datos Extraídos</h4>
-                            <span className={`text-xs px-2 py-1 rounded-full font-medium ${scrapedData.source === 'aliexpress'
-                                    ? 'bg-red-100 text-red-700'
-                                    : 'bg-orange-100 text-orange-700'
-                                }`}>
-                                {scrapedData.source === 'aliexpress' ? 'AliExpress' : 'Alibaba'}
-                            </span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-text-muted flex items-center gap-1">
+                                    <ImageIcon className="h-3 w-3" />
+                                    {scrapedData.images.length} imágenes
+                                </span>
+                                <span className={`text-xs px-2 py-1 rounded-full font-medium ${scrapedData.source === 'aliexpress'
+                                        ? 'bg-red-100 text-red-700'
+                                        : 'bg-orange-100 text-orange-700'
+                                    }`}>
+                                    {scrapedData.source === 'aliexpress' ? 'AliExpress' : 'Alibaba'}
+                                </span>
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Image Preview */}
-                            <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
-                                {scrapedData.images.length > 0 ? (
-                                    <img
-                                        src={scrapedData.images[0]}
-                                        alt={scrapedData.title}
-                                        className="w-full h-full object-cover"
-                                        onError={(e) => {
-                                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x400?text=Sin+Imagen';
-                                        }}
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-text-muted">
-                                        <Package className="h-16 w-16 opacity-30" />
-                                    </div>
-                                )}
+                            {/* Image Gallery */}
+                            <div className="space-y-2">
+                                <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
+                                    {scrapedData.images.length > 0 ? (
+                                        <>
+                                            <img
+                                                src={scrapedData.images[currentImageIndex]}
+                                                alt={`Imagen ${currentImageIndex + 1}`}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x400?text=Sin+Imagen';
+                                                }}
+                                            />
+                                            {/* Navigation arrows */}
+                                            {scrapedData.images.length > 1 && (
+                                                <>
+                                                    <button
+                                                        onClick={prevImage}
+                                                        disabled={currentImageIndex === 0}
+                                                        className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center disabled:opacity-30 hover:bg-black/70 transition-colors"
+                                                    >
+                                                        <ChevronLeft className="h-5 w-5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={nextImage}
+                                                        disabled={currentImageIndex === scrapedData.images.length - 1}
+                                                        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center disabled:opacity-30 hover:bg-black/70 transition-colors"
+                                                    >
+                                                        <ChevronRight className="h-5 w-5" />
+                                                    </button>
+                                                </>
+                                            )}
+                                            {/* Image counter */}
+                                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1 rounded-full">
+                                                {currentImageIndex + 1} / {scrapedData.images.length}
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-text-muted">
+                                            <Package className="h-16 w-16 opacity-30" />
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Thumbnails */}
                                 {scrapedData.images.length > 1 && (
-                                    <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
-                                        +{scrapedData.images.length - 1} fotos
+                                    <div className="flex gap-1 overflow-x-auto pb-1">
+                                        {scrapedData.images.slice(0, 8).map((img, index) => (
+                                            <button
+                                                key={index}
+                                                onClick={() => setCurrentImageIndex(index)}
+                                                className={`flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${currentImageIndex === index ? 'border-orange-500' : 'border-transparent hover:border-orange-300'
+                                                    }`}
+                                            >
+                                                <img
+                                                    src={img}
+                                                    alt={`Thumbnail ${index + 1}`}
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).style.display = 'none';
+                                                    }}
+                                                />
+                                            </button>
+                                        ))}
+                                        {scrapedData.images.length > 8 && (
+                                            <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center text-xs text-text-muted font-medium">
+                                                +{scrapedData.images.length - 8}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -211,7 +280,7 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
                             <div className="space-y-3">
                                 {/* Editable Title */}
                                 <div>
-                                    <label className="text-xs font-bold text-text-muted uppercase">Nombre del producto</label>
+                                    <label className="text-xs font-bold text-text-muted uppercase">Nombre</label>
                                     <input
                                         type="text"
                                         value={customName}
@@ -223,8 +292,16 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
                                 {/* Description */}
                                 <div>
                                     <label className="text-xs font-bold text-text-muted uppercase">Descripción</label>
-                                    <p className="text-sm text-text-muted line-clamp-3 mt-1">{scrapedData.description}</p>
+                                    <p className="text-sm text-text-muted line-clamp-2 mt-1">{scrapedData.description}</p>
                                 </div>
+
+                                {/* Details/Specs */}
+                                {scrapedData.details && (
+                                    <div>
+                                        <label className="text-xs font-bold text-text-muted uppercase">Detalles/Especificaciones</label>
+                                        <p className="text-xs text-text-muted line-clamp-4 mt-1 whitespace-pre-line">{scrapedData.details}</p>
+                                    </div>
+                                )}
 
                                 {/* Price */}
                                 <div>
@@ -269,18 +346,23 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
 
                             {/* Custom Price */}
                             <div>
-                                <label className="block text-xs font-bold text-text-muted uppercase mb-1">Precio USD (tu precio de venta)</label>
+                                <label className="block text-xs font-bold text-text-muted uppercase mb-1">Tu Precio de Venta (USD)</label>
                                 <input
                                     type="number"
                                     value={customPrice}
                                     onChange={(e) => setCustomPrice(e.target.value)}
-                                    placeholder="0.00"
+                                    placeholder="Ej: 25.00"
                                     step="0.01"
                                     min="0"
                                     className="w-full px-4 py-2.5 rounded-lg bg-background border-none text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
                                 />
                             </div>
                         </div>
+
+                        {/* Info */}
+                        <p className="text-xs text-text-muted mt-3">
+                            Se importarán <strong>{scrapedData.images.length}</strong> imágenes del producto
+                        </p>
 
                         {/* Actions */}
                         <div className="flex gap-3 mt-4">

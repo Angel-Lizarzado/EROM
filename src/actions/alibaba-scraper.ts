@@ -5,6 +5,7 @@ import { createProduct } from './products';
 interface ScrapedProduct {
     title: string;
     description: string;
+    details: string;
     price: number;
     images: string[];
     attributes: Record<string, string>;
@@ -45,20 +46,20 @@ export async function scrapeProductFromUrl(url: string): Promise<ScrapeResult> {
 
         const html = await response.text();
 
-        // Intentar extraer datos según la fuente
+        // Variables para almacenar datos
         let title = '';
         let description = '';
+        let details = '';
         let price = 0;
         const images: string[] = [];
+        const attributes: Record<string, string> = {};
 
         // === EXTRAER TÍTULO ===
-        // Método 1: Meta Open Graph
         const ogTitleMatch = html.match(/<meta\s+property="og:title"\s+content="([^"]+)"/i);
         if (ogTitleMatch) {
             title = ogTitleMatch[1].replace(/-\s*AliExpress.*$/i, '').replace(/-\s*Alibaba.*$/i, '').trim();
         }
 
-        // Método 2: Title tag
         if (!title) {
             const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
             if (titleMatch) {
@@ -72,13 +73,61 @@ export async function scrapeProductFromUrl(url: string): Promise<ScrapeResult> {
             description = descMatch[1].trim();
         }
 
+        // === EXTRAER DETALLES/ESPECIFICACIONES ===
+        // Buscar en JSON estructurado de AliExpress
+        const specJsonMatch = html.match(/"skuPropertyList":\s*(\[[^\]]+\])/);
+        if (specJsonMatch) {
+            try {
+                const specs = JSON.parse(specJsonMatch[1]);
+                const detailsParts: string[] = [];
+                for (const spec of specs) {
+                    if (spec.skuPropertyName && spec.skuPropertyValues) {
+                        const values = spec.skuPropertyValues.map((v: any) => v.propertyValueDisplayName).join(', ');
+                        detailsParts.push(`${spec.skuPropertyName}: ${values}`);
+                    }
+                }
+                if (detailsParts.length > 0) {
+                    details = detailsParts.join('\n');
+                }
+            } catch (e) {
+                // Ignorar errores de parsing
+            }
+        }
+
+        // Buscar especificaciones en formato HTML
+        const specsHtmlMatch = html.match(/<div[^>]*class="[^"]*specification[^"]*"[^>]*>([\s\S]*?)<\/div>/gi);
+        if (specsHtmlMatch && !details) {
+            const specText = specsHtmlMatch.join(' ')
+                .replace(/<[^>]+>/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+            if (specText.length > 10) {
+                details = specText.substring(0, 1000);
+            }
+        }
+
+        // Buscar atributos del producto
+        const attrMatches = html.matchAll(/"attrName":\s*"([^"]+)",\s*"attrValue":\s*"([^"]+)"/gi);
+        for (const match of attrMatches) {
+            if (Object.keys(attributes).length < 10) {
+                attributes[match[1]] = match[2];
+            }
+        }
+
+        // Convertir atributos a detalles si no tenemos
+        if (!details && Object.keys(attributes).length > 0) {
+            details = Object.entries(attributes)
+                .map(([key, value]) => `${key}: ${value}`)
+                .join('\n');
+        }
+
         // === EXTRAER PRECIO ===
-        // Buscar precio en varios formatos
         const pricePatterns = [
             /\$\s*([\d,]+\.?\d*)/,
             /USD\s*([\d,]+\.?\d*)/i,
-            /price['":\s]*['"$]*\s*([\d,]+\.?\d*)/i,
-            /"price":\s*"?\$?([\d,]+\.?\d*)/i,
+            /"minPrice":\s*"?([\d.]+)/i,
+            /"formatedActivityPrice":\s*"[^"]*\$\s*([\d.]+)/i,
+            /"formatedPrice":\s*"[^"]*\$\s*([\d.]+)/i,
         ];
 
         for (const pattern of pricePatterns) {
@@ -86,7 +135,7 @@ export async function scrapeProductFromUrl(url: string): Promise<ScrapeResult> {
             if (match) {
                 const priceStr = match[1].replace(',', '');
                 const parsed = parseFloat(priceStr);
-                if (parsed > 0 && parsed < 10000) { // Rango razonable
+                if (parsed > 0 && parsed < 10000) {
                     price = parsed;
                     break;
                 }
@@ -94,37 +143,54 @@ export async function scrapeProductFromUrl(url: string): Promise<ScrapeResult> {
         }
 
         // === EXTRAER IMÁGENES ===
-        // Open Graph image
+        // 1. Open Graph images
         const ogImageMatches = html.matchAll(/<meta\s+property="og:image(?::url)?"\s+content="([^"]+)"/gi);
         for (const match of ogImageMatches) {
-            if (match[1] && !images.includes(match[1]) && images.length < 5) {
+            if (match[1] && !images.includes(match[1]) && images.length < 10) {
                 images.push(match[1]);
             }
         }
 
-        // Buscar en JSON estructurado
+        // 2. Buscar en JSON estructurado - imagePathList
         const jsonImageMatch = html.match(/"imagePathList":\s*\[([^\]]+)\]/);
         if (jsonImageMatch) {
             const imgList = jsonImageMatch[1].match(/"([^"]+)"/g);
             if (imgList) {
                 for (const img of imgList) {
-                    const cleanImg = img.replace(/"/g, '');
-                    if (cleanImg.startsWith('http') && !images.includes(cleanImg) && images.length < 5) {
+                    const cleanImg = img.replace(/"/g, '').replace(/\\/g, '');
+                    if (cleanImg.startsWith('http') && !images.includes(cleanImg) && images.length < 10) {
                         images.push(cleanImg);
                     }
                 }
             }
         }
 
-        // Buscar imágenes de CDN de AliExpress/Alibaba
-        const cdnImageMatches = html.matchAll(/(https?:\/\/[^"'\s]+(?:alicdn|ae01|cbu01)[^"'\s]+\.(?:jpg|jpeg|png|webp))/gi);
-        for (const match of cdnImageMatches) {
-            if (match[1] && !images.includes(match[1]) && images.length < 5) {
-                // Limpiar la URL y asegurar tamaño grande
-                let imgUrl = match[1].split('_')[0]; // Remover sufijos de tamaño
-                if (!imgUrl.includes('avatar') && !imgUrl.includes('icon')) {
-                    images.push(match[1]);
+        // 3. Buscar galleryUrls en AliExpress
+        const galleryMatch = html.match(/"galleryUrls":\s*\[([^\]]+)\]/);
+        if (galleryMatch) {
+            const imgList = galleryMatch[1].match(/"([^"]+)"/g);
+            if (imgList) {
+                for (const img of imgList) {
+                    const cleanImg = img.replace(/"/g, '').replace(/\\/g, '');
+                    if (cleanImg.startsWith('http') && !images.includes(cleanImg) && images.length < 10) {
+                        images.push(cleanImg);
+                    }
                 }
+            }
+        }
+
+        // 4. Buscar imágenes de CDN de AliExpress/Alibaba
+        const cdnImageMatches = html.matchAll(/(https?:\/\/[^"'\s<>]+(?:alicdn|ae01|cbu01)[^"'\s<>]+\.(?:jpg|jpeg|png|webp))/gi);
+        for (const match of cdnImageMatches) {
+            let imgUrl = match[1];
+            // Filtrar imágenes pequeñas y avatares
+            if (!imgUrl.includes('avatar') &&
+                !imgUrl.includes('icon') &&
+                !imgUrl.includes('50x50') &&
+                !imgUrl.includes('100x100') &&
+                !images.includes(imgUrl) &&
+                images.length < 10) {
+                images.push(imgUrl);
             }
         }
 
@@ -132,7 +198,7 @@ export async function scrapeProductFromUrl(url: string): Promise<ScrapeResult> {
         if (!title || title.length < 5) {
             return {
                 success: false,
-                error: `No se pudo extraer información del producto. La página puede estar bloqueando solicitudes automáticas o requiere verificación humana.`
+                error: `No se pudo extraer información. La página puede requerir verificación humana.`
             };
         }
 
@@ -140,10 +206,11 @@ export async function scrapeProductFromUrl(url: string): Promise<ScrapeResult> {
             success: true,
             data: {
                 title,
-                description: description || `Producto importado desde ${source === 'aliexpress' ? 'AliExpress' : 'Alibaba'}: ${title}`,
+                description: description || `Producto importado: ${title}`,
+                details: details || '',
                 price,
-                images: images.length > 0 ? images : [],
-                attributes: {},
+                images,
+                attributes,
                 source,
             },
         };
@@ -167,10 +234,12 @@ export async function importProductFromScrape(
         const product = await createProduct({
             name: customName || scrapedData.title,
             description: scrapedData.description,
+            details: scrapedData.details || null,
             priceUsd: customPrice || scrapedData.price || 10,
             isOffer: false,
             stock: 10,
             image: scrapedData.images[0] || 'https://via.placeholder.com/400x500?text=Sin+Imagen',
+            images: scrapedData.images,
             categoryId,
         });
 
