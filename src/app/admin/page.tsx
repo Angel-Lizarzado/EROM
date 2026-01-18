@@ -73,14 +73,18 @@ export default function AdminDashboard() {
 
     const loadData = async () => {
         setLoading(true);
-        const [productsData, categoriesData, slidesData] = await Promise.all([
-            getProducts(),
-            getCategories(),
-            getAllHeroSlides().catch(() => [] as HeroSlide[])
-        ]);
-        setProducts(productsData);
-        setCategories(categoriesData);
-        setSlides(slidesData);
+        try {
+            const [productsData, categoriesData, slidesData] = await Promise.all([
+                getProducts().catch(() => [] as ProductWithCategory[]),
+                getCategories().catch(() => [] as Category[]),
+                getAllHeroSlides().catch(() => [] as HeroSlide[])
+            ]);
+            setProducts(productsData);
+            setCategories(categoriesData);
+            setSlides(slidesData);
+        } catch (error) {
+            console.error('Error loading data:', error);
+        }
         setLoading(false);
     };
 
