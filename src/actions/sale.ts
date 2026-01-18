@@ -1,7 +1,5 @@
 'use server';
 
-import { prisma } from '@/lib/prisma';
-
 interface LogSaleInput {
     productId: number;
     productName: string;
@@ -13,15 +11,8 @@ export async function logSaleAndGetWhatsAppUrl(input: LogSaleInput): Promise<str
     const { productName, priceUsd, exchangeRate } = input;
     const priceVesCalculated = priceUsd * exchangeRate;
 
-    // Log the sale to database
-    await prisma.saleLog.create({
-        data: {
-            productName,
-            priceUsdAtMoment: priceUsd,
-            exchangeRate,
-            priceVesCalculated,
-        },
-    });
+    // Nota: El registro formal de ventas ahora se hace desde /admin -> Ventas
+    // Este endpoint solo genera la URL de WhatsApp para el cliente
 
     // Create WhatsApp message
     const message = encodeURIComponent(
