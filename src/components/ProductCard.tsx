@@ -1,10 +1,10 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { Heart } from 'lucide-react';
 import PriceDisplay from './PriceDisplay';
 import WhatsAppButton from './WhatsAppButton';
+import { useFavorites } from '@/context/FavoritesContext';
 
 interface ProductCardProps {
     id: number;
@@ -27,6 +27,15 @@ export default function ProductCard({
     stock,
     image,
 }: ProductCardProps) {
+    const { isFavorite, toggleFavorite } = useFavorites();
+    const isInFavorites = isFavorite(id);
+
+    const handleToggleFavorite = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleFavorite({ id, name, priceUsd, image });
+    };
+
     return (
         <div className="group relative flex flex-col rounded-xl bg-surface shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] transition-transform duration-300 hover:-translate-y-1 overflow-hidden">
             {/* Image Container */}
@@ -55,8 +64,14 @@ export default function ProductCard({
                 )}
 
                 {/* Favorite Button */}
-                <button className="absolute top-3 right-3 z-10 flex size-8 items-center justify-center rounded-full bg-white/80 text-text-main opacity-0 transition-opacity duration-300 hover:bg-white hover:text-red-500 group-hover:opacity-100">
-                    <Heart className="h-5 w-5" />
+                <button
+                    onClick={handleToggleFavorite}
+                    className={`absolute top-3 right-3 z-10 flex size-8 items-center justify-center rounded-full transition-all duration-300 ${isInFavorites
+                            ? 'bg-primary text-white opacity-100'
+                            : 'bg-white/80 text-text-main opacity-0 hover:bg-white hover:text-red-500 group-hover:opacity-100'
+                        }`}
+                >
+                    <Heart className={`h-5 w-5 ${isInFavorites ? 'fill-current' : ''}`} />
                 </button>
 
                 {/* Product Image */}

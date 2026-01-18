@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Heart, Menu, LogOut } from 'lucide-react';
+import { Search, Heart, Menu, LogOut, X } from 'lucide-react';
 import { useFavorites } from '@/context/FavoritesContext';
 
 export default function Header() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [showSearch, setShowSearch] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
     const { count } = useFavorites();
 
     useEffect(() => {
@@ -26,6 +28,13 @@ export default function Header() {
         document.cookie = 'admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         setIsAuthenticated(false);
         window.location.href = '/';
+    };
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchTerm.trim()) {
+            window.location.href = `/?search=${encodeURIComponent(searchTerm.trim())}`;
+        }
     };
 
     return (
@@ -49,11 +58,11 @@ export default function Header() {
                     <Link href="/" className="text-sm font-medium text-text-main hover:text-primary transition-colors">
                         Inicio
                     </Link>
-                    <Link href="/#products" className="text-sm font-medium text-text-main hover:text-primary transition-colors">
-                        Tienda
+                    <Link href="/?filter=offers" className="text-sm font-medium text-text-main hover:text-primary transition-colors">
+                        Ofertas
                     </Link>
-                    <Link href="/favoritos" className="text-sm font-medium text-text-main hover:text-primary transition-colors">
-                        Favoritos
+                    <Link href="/?filter=new" className="text-sm font-medium text-text-main hover:text-primary transition-colors">
+                        Nuevos
                     </Link>
                     {/* Solo mostrar Admin si está autenticado */}
                     {isAuthenticated && (
@@ -65,9 +74,35 @@ export default function Header() {
 
                 {/* Right Side Actions */}
                 <div className="flex items-center gap-3">
-                    <button className="flex size-10 items-center justify-center rounded-full bg-background hover:bg-primary/20 hover:text-primary transition-colors">
-                        <Search className="h-5 w-5" />
-                    </button>
+                    {/* Search */}
+                    {showSearch ? (
+                        <form onSubmit={handleSearch} className="flex items-center gap-2">
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                placeholder="Buscar productos..."
+                                autoFocus
+                                className="w-40 lg:w-60 px-4 py-2 rounded-full border border-border text-sm focus:outline-none focus:border-primary"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => { setShowSearch(false); setSearchTerm(''); }}
+                                className="p-2 hover:text-primary"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </form>
+                    ) : (
+                        <button
+                            onClick={() => setShowSearch(true)}
+                            className="flex size-10 items-center justify-center rounded-full bg-background hover:bg-primary/20 hover:text-primary transition-colors"
+                        >
+                            <Search className="h-5 w-5" />
+                        </button>
+                    )}
+
+                    {/* Favorites */}
                     <Link
                         href="/favoritos"
                         className="relative flex size-10 items-center justify-center rounded-full bg-background hover:bg-primary/20 hover:text-primary transition-colors"
@@ -79,6 +114,7 @@ export default function Header() {
                             </span>
                         )}
                     </Link>
+
                     {/* Botón de cerrar sesión si está autenticado */}
                     {isAuthenticated && (
                         <button

@@ -279,23 +279,6 @@ export default function AdminDashboard() {
                                     className="block w-full pl-11 pr-4 py-3 bg-white border-none ring-1 ring-black/5 rounded-full text-sm text-text-main placeholder-text-muted focus:ring-2 focus:ring-primary focus:outline-none transition-shadow shadow-sm"
                                 />
                             </div>
-
-                            {/* Quick Category Add */}
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    placeholder="Nueva categoría..."
-                                    value={newCategoryName}
-                                    onChange={(e) => setNewCategoryName(e.target.value)}
-                                    className="px-4 py-2 border border-border rounded-full text-sm focus:ring-2 focus:ring-primary focus:outline-none"
-                                />
-                                <button
-                                    onClick={handleCreateCategory}
-                                    className="px-4 py-2 bg-primary text-white rounded-full text-sm font-medium hover:bg-primary-hover transition-colors"
-                                >
-                                    Añadir
-                                </button>
-                            </div>
                         </div>
 
                         {/* Products Table */}
