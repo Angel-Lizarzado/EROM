@@ -15,22 +15,33 @@ export default function ProductsSection({ products }: ProductsSectionProps) {
     const searchParams = useSearchParams();
     const [filter, setFilter] = useState<FilterType>('all');
     const [searchTerm, setSearchTerm] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('');
 
     // Leer parámetros de URL al cargar
     useEffect(() => {
         const filterParam = searchParams.get('filter');
         const searchParam = searchParams.get('search');
+        const categoryParam = searchParams.get('category');
 
         if (filterParam === 'offers') setFilter('offers');
         else if (filterParam === 'new') setFilter('new');
         else setFilter('all');
 
         if (searchParam) setSearchTerm(searchParam);
+        if (categoryParam) setCategoryFilter(categoryParam);
+        else setCategoryFilter('');
     }, [searchParams]);
 
     // Filtrar productos
     const filteredProducts = useMemo(() => {
         let result = [...products];
+
+        // Aplicar filtro de categoría
+        if (categoryFilter) {
+            result = result.filter((p) =>
+                p.category.name.toLowerCase() === categoryFilter.toLowerCase()
+            );
+        }
 
         // Aplicar filtro de búsqueda
         if (searchTerm) {
@@ -54,7 +65,7 @@ export default function ProductsSection({ products }: ProductsSectionProps) {
         }
 
         return result;
-    }, [products, filter, searchTerm]);
+    }, [products, filter, searchTerm, categoryFilter]);
 
     const handleFilterChange = (newFilter: FilterType) => {
         setFilter(newFilter);
@@ -74,16 +85,24 @@ export default function ProductsSection({ products }: ProductsSectionProps) {
             <div id="products" className="mx-auto max-w-7xl px-6 py-8 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h3 className="font-serif-logo text-3xl font-bold text-text-main">
-                        {filter === 'offers' ? 'Ofertas' : filter === 'new' ? 'Nuevos' : 'Productos Destacados'}
+                        {categoryFilter
+                            ? categoryFilter
+                            : filter === 'offers'
+                                ? 'Ofertas'
+                                : filter === 'new'
+                                    ? 'Nuevos'
+                                    : 'Productos Destacados'}
                     </h3>
                     <p className="mt-2 text-text-muted">
                         {searchTerm
                             ? `Resultados para "${searchTerm}"`
-                            : filter === 'offers'
-                                ? 'Los mejores precios en nuestra selección.'
-                                : filter === 'new'
-                                    ? 'Agregados recientemente a nuestra tienda.'
-                                    : 'Selección curada para esta temporada.'
+                            : categoryFilter
+                                ? `${filteredProducts.length} productos en esta categoría`
+                                : filter === 'offers'
+                                    ? 'Los mejores precios en nuestra selección.'
+                                    : filter === 'new'
+                                        ? 'Agregados recientemente a nuestra tienda.'
+                                        : 'Selección curada para esta temporada.'
                         }
                     </p>
                 </div>
@@ -91,8 +110,8 @@ export default function ProductsSection({ products }: ProductsSectionProps) {
                     <button
                         onClick={() => handleFilterChange('all')}
                         className={`flex h-10 px-4 items-center justify-center rounded-full text-sm font-medium transition-colors ${filter === 'all'
-                                ? 'bg-primary text-white shadow-sm'
-                                : 'border border-border hover:bg-background'
+                            ? 'bg-primary text-white shadow-sm'
+                            : 'border border-border hover:bg-background'
                             }`}
                     >
                         Todos
@@ -100,8 +119,8 @@ export default function ProductsSection({ products }: ProductsSectionProps) {
                     <button
                         onClick={() => handleFilterChange('offers')}
                         className={`flex h-10 px-4 items-center justify-center rounded-full text-sm font-medium transition-colors ${filter === 'offers'
-                                ? 'bg-primary text-white shadow-sm'
-                                : 'border border-border hover:bg-background'
+                            ? 'bg-primary text-white shadow-sm'
+                            : 'border border-border hover:bg-background'
                             }`}
                     >
                         Ofertas
@@ -109,8 +128,8 @@ export default function ProductsSection({ products }: ProductsSectionProps) {
                     <button
                         onClick={() => handleFilterChange('new')}
                         className={`flex h-10 px-4 items-center justify-center rounded-full text-sm font-medium transition-colors ${filter === 'new'
-                                ? 'bg-primary text-white shadow-sm'
-                                : 'border border-border hover:bg-background'
+                            ? 'bg-primary text-white shadow-sm'
+                            : 'border border-border hover:bg-background'
                             }`}
                     >
                         Nuevos

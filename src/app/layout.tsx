@@ -7,6 +7,7 @@ import ExchangeRateBadge from '@/components/ExchangeRateBadge';
 import { ExchangeRateProvider } from '@/context/ExchangeRateContext';
 import { FavoritesProvider } from '@/context/FavoritesContext';
 import { getExchangeRate } from '@/lib/exchange-rate';
+import { getCategories } from '@/actions/categories';
 import { MessageCircle } from 'lucide-react';
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -29,8 +30,11 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Fetch exchange rate on server
-  const exchangeData = await getExchangeRate();
+  // Fetch data on server
+  const [exchangeData, categories] = await Promise.all([
+    getExchangeRate(),
+    getCategories().catch(() => []),
+  ]);
 
   return (
     <html lang="es" className={`${plusJakarta.variable} ${playfair.variable}`}>
@@ -41,7 +45,7 @@ export default async function RootLayout({
             fechaActualizacion={exchangeData.fechaActualizacion}
           >
             <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
-              <Header />
+              <Header categories={categories} />
               <main className="flex-1 pt-20">
                 {children}
               </main>
