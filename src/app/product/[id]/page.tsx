@@ -1,9 +1,9 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, Heart, Minus, Plus } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { getProductById, getRelatedProducts } from '@/actions/products';
 import PriceDisplay from '@/components/PriceDisplay';
-import WhatsAppButton from '@/components/WhatsAppButton';
+import ProductActions from '@/components/ProductActions';
 import ProductCard from '@/components/ProductCard';
 
 interface ProductPageProps {
@@ -70,19 +70,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
                 {/* Info Section */}
                 <div className="flex flex-col py-2 lg:py-6">
-                    {/* Title & Favorite */}
-                    <div className="flex justify-between items-start w-full mb-2">
-                        <div className="flex flex-col">
-                            <h1 className="text-3xl lg:text-5xl font-light text-text-main leading-tight mb-2 tracking-tight">
-                                {product.name}
-                            </h1>
-                            <p className="text-text-muted text-sm font-medium">
-                                {product.category.name}
-                            </p>
-                        </div>
-                        <button className="p-2 rounded-full bg-gray-50 text-text-muted hover:text-primary transition-colors">
-                            <Heart className="h-6 w-6" />
-                        </button>
+                    {/* Title */}
+                    <div className="flex flex-col mb-2">
+                        <h1 className="text-3xl lg:text-5xl font-light text-text-main leading-tight mb-2 tracking-tight">
+                            {product.name}
+                        </h1>
+                        <p className="text-text-muted text-sm font-medium">
+                            {product.category.name}
+                        </p>
                     </div>
 
                     {/* Price */}
@@ -114,34 +109,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
                         <p>{product.description}</p>
                     </div>
 
-                    {/* WhatsApp Button */}
-                    <div className="flex flex-col gap-4">
-                        <div className="flex gap-4">
-                            {/* Quantity Selector (visual only) */}
-                            <div className="flex items-center rounded-full bg-white border border-border h-14 px-2">
-                                <button className="size-10 flex items-center justify-center text-text-muted hover:text-primary transition-colors">
-                                    <Minus className="h-4 w-4" />
-                                </button>
-                                <span className="w-8 text-center text-text-main font-semibold">1</span>
-                                <button className="size-10 flex items-center justify-center text-text-muted hover:text-primary transition-colors">
-                                    <Plus className="h-4 w-4" />
-                                </button>
-                            </div>
-
-                            {/* WhatsApp Button */}
-                            <div className="flex-1">
-                                <WhatsAppButton
-                                    productId={product.id}
-                                    productName={product.name}
-                                    priceUsd={product.priceUsd}
-                                    disabled={product.stock === 0}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-xs text-text-muted text-center mt-1">
-                            Envío gratis en Caracas para pedidos mayores a $50.
-                        </p>
-                    </div>
+                    {/* Product Actions: Quantity, WhatsApp, Favorite */}
+                    <ProductActions
+                        product={{
+                            id: product.id,
+                            name: product.name,
+                            priceUsd: product.priceUsd,
+                            image: product.image,
+                            stock: product.stock,
+                        }}
+                    />
                 </div>
             </div>
 

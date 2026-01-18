@@ -2,34 +2,53 @@
 
 import { prisma } from '@/lib/prisma';
 import { Product, Category } from '@prisma/client';
+import { demoProducts, demoCategories } from '@/lib/demo-data';
 
 export type ProductWithCategory = Product & {
     category: Category;
 };
 
 export async function getProducts(): Promise<ProductWithCategory[]> {
-    return prisma.product.findMany({
-        include: { category: true },
-        orderBy: { createdAt: 'desc' },
-    });
+    try {
+        return await prisma.product.findMany({
+            include: { category: true },
+            orderBy: { createdAt: 'desc' },
+        });
+    } catch (error) {
+        console.log('Using demo products (database unavailable)');
+        return demoProducts as ProductWithCategory[];
+    }
 }
 
 export async function getProductById(id: number): Promise<ProductWithCategory | null> {
-    return prisma.product.findUnique({
-        where: { id },
-        include: { category: true },
-    });
+    try {
+        return await prisma.product.findUnique({
+            where: { id },
+            include: { category: true },
+        });
+    } catch (error) {
+        console.log('Using demo product (database unavailable)');
+        const product = demoProducts.find(p => p.id === id);
+        return product as ProductWithCategory | null;
+    }
 }
 
 export async function getRelatedProducts(categoryId: number, excludeId: number, limit = 4): Promise<ProductWithCategory[]> {
-    return prisma.product.findMany({
-        where: {
-            categoryId,
-            id: { not: excludeId },
-        },
-        include: { category: true },
-        take: limit,
-    });
+    try {
+        return await prisma.product.findMany({
+            where: {
+                categoryId,
+                id: { not: excludeId },
+            },
+            include: { category: true },
+            take: limit,
+        });
+    } catch (error) {
+        console.log('Using demo related products (database unavailable)');
+        return demoProducts
+            .filter(p => p.categoryId === categoryId && p.id !== excludeId)
+            .slice(0, limit) as ProductWithCategory[];
+    }
 }
 
 export async function createProduct(data: {

@@ -2,11 +2,17 @@
 
 import { prisma } from '@/lib/prisma';
 import { Category } from '@prisma/client';
+import { demoCategories } from '@/lib/demo-data';
 
 export async function getCategories(): Promise<Category[]> {
-    return prisma.category.findMany({
-        orderBy: { name: 'asc' },
-    });
+    try {
+        return await prisma.category.findMany({
+            orderBy: { name: 'asc' },
+        });
+    } catch (error) {
+        console.log('Using demo categories (database unavailable)');
+        return demoCategories as Category[];
+    }
 }
 
 export async function createCategory(name: string): Promise<Category> {

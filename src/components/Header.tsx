@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, ShoppingBag, Menu, LogOut } from 'lucide-react';
+import { Search, Heart, Menu, LogOut } from 'lucide-react';
+import { useFavorites } from '@/context/FavoritesContext';
 
 export default function Header() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const { count } = useFavorites();
 
     useEffect(() => {
         // Check authentication on client side
@@ -50,8 +52,8 @@ export default function Header() {
                     <Link href="/#products" className="text-sm font-medium text-text-main hover:text-primary transition-colors">
                         Tienda
                     </Link>
-                    <Link href="/#new" className="text-sm font-medium text-text-main hover:text-primary transition-colors">
-                        Nuevos
+                    <Link href="/favoritos" className="text-sm font-medium text-text-main hover:text-primary transition-colors">
+                        Favoritos
                     </Link>
                     {/* Solo mostrar Admin si está autenticado */}
                     {isAuthenticated && (
@@ -66,12 +68,17 @@ export default function Header() {
                     <button className="flex size-10 items-center justify-center rounded-full bg-background hover:bg-primary/20 hover:text-primary transition-colors">
                         <Search className="h-5 w-5" />
                     </button>
-                    <button className="relative flex size-10 items-center justify-center rounded-full bg-background hover:bg-primary/20 hover:text-primary transition-colors">
-                        <ShoppingBag className="h-5 w-5" />
-                        <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
-                            0
-                        </span>
-                    </button>
+                    <Link
+                        href="/favoritos"
+                        className="relative flex size-10 items-center justify-center rounded-full bg-background hover:bg-primary/20 hover:text-primary transition-colors"
+                    >
+                        <Heart className="h-5 w-5" />
+                        {count > 0 && (
+                            <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
+                                {count > 9 ? '9+' : count}
+                            </span>
+                        )}
+                    </Link>
                     {/* Botón de cerrar sesión si está autenticado */}
                     {isAuthenticated && (
                         <button

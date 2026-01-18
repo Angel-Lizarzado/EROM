@@ -9,6 +9,7 @@ interface WhatsAppButtonProps {
     productId: number;
     productName: string;
     priceUsd: number;
+    quantity?: number;
     disabled?: boolean;
     fullWidth?: boolean;
 }
@@ -17,6 +18,7 @@ export default function WhatsAppButton({
     productId,
     productName,
     priceUsd,
+    quantity = 1,
     disabled = false,
     fullWidth = true,
 }: WhatsAppButtonProps) {
@@ -27,11 +29,12 @@ export default function WhatsAppButton({
         if (disabled || loading) return;
 
         setLoading(true);
+        const totalUsd = priceUsd * quantity;
         try {
             const whatsappUrl = await logSaleAndGetWhatsAppUrl({
                 productId,
-                productName,
-                priceUsd,
+                productName: quantity > 1 ? `${productName} (x${quantity})` : productName,
+                priceUsd: totalUsd,
                 exchangeRate: rate,
             });
 
@@ -40,9 +43,9 @@ export default function WhatsAppButton({
         } catch (error) {
             console.error('Error logging sale:', error);
             // Still open WhatsApp even if logging fails
-            const priceVes = (priceUsd * rate).toFixed(2);
+            const priceVes = (totalUsd * rate).toFixed(2);
             const message = encodeURIComponent(
-                `Hola Daian, quiero ${productName}. Precio: $${priceUsd.toFixed(2)} (Bs. ${priceVes}).`
+                `Hola Daian, quiero ${quantity > 1 ? `${quantity}x ` : ''}${productName}. Precio: $${totalUsd.toFixed(2)} (Bs. ${priceVes}).`
             );
             window.open(`https://wa.me/584164974877?text=${message}`, '_blank');
         } finally {
