@@ -104,7 +104,7 @@ export default function Header({ categories = [] }: HeaderProps) {
                         {isAuthenticated && (
                             <Link href="/admin" className="flex items-center gap-1.5 text-sm font-bold text-primary hover:text-primary-hover transition-colors">
                                 <span>⚙️</span>
-                                Admin
+                                Panel de Admin
                             </Link>
                         )}
                     </nav>
