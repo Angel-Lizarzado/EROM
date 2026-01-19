@@ -88,8 +88,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
                     </div>
 
                     {/* Description */}
-                    <div className="prose prose-sm text-text-muted mb-8 leading-relaxed max-w-md">
-                        <p>{product.description}</p>
+                    <div className="prose prose-sm text-text-muted mb-8 leading-relaxed max-w-md whitespace-pre-line">
+                        {product.description}
                     </div>
 
                     {/* Product Actions: Quantity, WhatsApp, Favorite */}

@@ -35,6 +35,7 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
     const [customDescription, setCustomDescription] = useState<string>('');
     const [importSuccess, setImportSuccess] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [editableImages, setEditableImages] = useState<string[]>([]);
 
     const handleScrape = async () => {
         if (!url.trim()) {
@@ -52,6 +53,7 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
 
         if (result.success && result.data) {
             setScrapedData(result.data);
+            setEditableImages(result.data.images || []);
             setCustomPrice(result.data.price?.toString() || '');
             setCustomName(result.data.title || '');
             setCustomDescription(result.data.description || '');
@@ -62,6 +64,13 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
         setLoading(false);
     };
 
+    const removeImage = (indexToRemove: number) => {
+        setEditableImages(prev => prev.filter((_, i) => i !== indexToRemove));
+        if (currentImageIndex >= indexToRemove && currentImageIndex > 0) {
+            setCurrentImageIndex(currentImageIndex - 1);
+        }
+    };
+
     const handleImport = async () => {
         if (!scrapedData || !selectedCategory) return;
 
@@ -69,7 +78,7 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
         setError(null);
 
         const result = await importProductFromScrape(
-            { ...scrapedData, description: customDescription },
+            { ...scrapedData, images: editableImages, description: customDescription },
             selectedCategory,
             customPrice ? parseFloat(customPrice) : undefined,
             customName || undefined,
@@ -79,6 +88,7 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
         if (result.success) {
             setImportSuccess(true);
             setScrapedData(null);
+            setEditableImages([]);
             setUrl('');
             setCustomPrice('');
             setCustomName('');
@@ -200,8 +210,8 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
                                     {scrapedData.images.length} imágenes
                                 </span>
                                 <span className={`text-xs px-2 py-1 rounded-full font-medium ${scrapedData.source === 'aliexpress'
-                                        ? 'bg-red-100 text-red-700'
-                                        : 'bg-orange-100 text-orange-700'
+                                    ? 'bg-red-100 text-red-700'
+                                    : 'bg-orange-100 text-orange-700'
                                     }`}>
                                     {scrapedData.source === 'aliexpress' ? 'AliExpress' : 'Alibaba'}
                                 </span>
@@ -212,10 +222,10 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
                             {/* Image Gallery */}
                             <div className="space-y-2">
                                 <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
-                                    {scrapedData.images.length > 0 ? (
+                                    {editableImages.length > 0 ? (
                                         <>
                                             <img
-                                                src={scrapedData.images[currentImageIndex]}
+                                                src={editableImages[currentImageIndex] || editableImages[0]}
                                                 alt={`Imagen ${currentImageIndex + 1}`}
                                                 className="w-full h-full object-cover"
                                                 onError={(e) => {
@@ -223,7 +233,7 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
                                                 }}
                                             />
                                             {/* Navigation arrows */}
-                                            {scrapedData.images.length > 1 && (
+                                            {editableImages.length > 1 && (
                                                 <>
                                                     <button
                                                         onClick={prevImage}
@@ -234,7 +244,7 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
                                                     </button>
                                                     <button
                                                         onClick={nextImage}
-                                                        disabled={currentImageIndex === scrapedData.images.length - 1}
+                                                        disabled={currentImageIndex === editableImages.length - 1}
                                                         className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center disabled:opacity-30 hover:bg-black/70 transition-colors"
                                                     >
                                                         <ChevronRight className="h-5 w-5" />
@@ -243,7 +253,7 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
                                             )}
                                             {/* Image counter */}
                                             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1 rounded-full">
-                                                {currentImageIndex + 1} / {scrapedData.images.length}
+                                                {currentImageIndex + 1} / {editableImages.length}
                                             </div>
                                         </>
                                     ) : (
@@ -253,31 +263,40 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
                                     )}
                                 </div>
 
-                                {/* Thumbnails */}
-                                {scrapedData.images.length > 1 && (
-                                    <div className="flex gap-1 overflow-x-auto pb-1">
-                                        {scrapedData.images.slice(0, 8).map((img, index) => (
-                                            <button
-                                                key={index}
-                                                onClick={() => setCurrentImageIndex(index)}
-                                                className={`flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${currentImageIndex === index ? 'border-orange-500' : 'border-transparent hover:border-orange-300'
-                                                    }`}
-                                            >
-                                                <img
-                                                    src={img}
-                                                    alt={`Thumbnail ${index + 1}`}
-                                                    className="w-full h-full object-cover"
-                                                    onError={(e) => {
-                                                        (e.target as HTMLImageElement).style.display = 'none';
-                                                    }}
-                                                />
-                                            </button>
-                                        ))}
-                                        {scrapedData.images.length > 8 && (
-                                            <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center text-xs text-text-muted font-medium">
-                                                +{scrapedData.images.length - 8}
-                                            </div>
-                                        )}
+                                {/* Thumbnails with delete option */}
+                                {editableImages.length > 0 && (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-text-muted">Imágenes ({editableImages.length})</span>
+                                            <span className="text-xs text-text-muted">Haz clic en X para eliminar</span>
+                                        </div>
+                                        <div className="flex gap-2 overflow-x-auto pb-1">
+                                            {editableImages.map((img, index) => (
+                                                <div key={index} className="relative flex-shrink-0 group">
+                                                    <button
+                                                        onClick={() => setCurrentImageIndex(index)}
+                                                        className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${currentImageIndex === index ? 'border-orange-500' : 'border-transparent hover:border-orange-300'}`}
+                                                    >
+                                                        <img
+                                                            src={img}
+                                                            alt={`Imagen ${index + 1}`}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                                (e.target as HTMLImageElement).style.display = 'none';
+                                                            }}
+                                                        />
+                                                    </button>
+                                                    {/* Delete button */}
+                                                    <button
+                                                        onClick={() => removeImage(index)}
+                                                        className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-md transition-colors"
+                                                        title="Eliminar imagen"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -292,6 +311,24 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
                                         onChange={(e) => setCustomName(e.target.value)}
                                         className="w-full mt-1 px-3 py-2 rounded-lg bg-background border-none text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
                                     />
+                                </div>
+
+                                {/* Editable Description - DENTRO DE LA MISMA SECCIÓN */}
+                                <div>
+                                    <label className="text-xs font-bold text-text-muted uppercase flex items-center gap-1">
+                                        <FileText className="h-3 w-3" />
+                                        Descripción del producto
+                                    </label>
+                                    <textarea
+                                        value={customDescription}
+                                        onChange={(e) => setCustomDescription(e.target.value)}
+                                        placeholder="Pega aquí la descripción completa desde AliExpress (Información del producto, Descripción, Lista de productos, etc.)"
+                                        rows={5}
+                                        className="w-full mt-1 px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 resize-y"
+                                    />
+                                    <p className="text-xs text-text-muted mt-1">
+                                        💡 Copia desde AliExpress: "Información del producto" + "Descripción"
+                                    </p>
                                 </div>
 
                                 {/* Price */}
@@ -322,25 +359,6 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
                                 </a>
                             </div>
                         </div>
-                    </div>
-
-                    {/* Editable Description - FULL WIDTH */}
-                    <div className="bg-white rounded-xl border border-orange-200 p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                            <FileText className="h-4 w-4 text-orange-500" />
-                            <label className="text-sm font-bold text-text-main">Descripción del Producto</label>
-                            <span className="text-xs text-text-muted">(Puedes editar o pegar desde AliExpress)</span>
-                        </div>
-                        <textarea
-                            value={customDescription}
-                            onChange={(e) => setCustomDescription(e.target.value)}
-                            placeholder="Pega aquí la descripción completa del producto desde AliExpress (Información del producto, Descripción, Lista de productos, etc.)"
-                            rows={6}
-                            className="w-full px-4 py-3 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 resize-y"
-                        />
-                        <p className="text-xs text-text-muted mt-1">
-                            💡 Tip: Copia la sección "Información del producto" y "Descripción del producto" desde la página de AliExpress
-                        </p>
                     </div>
 
                     {/* Import Options */}

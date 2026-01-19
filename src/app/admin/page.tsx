@@ -251,7 +251,7 @@ export default function AdminDashboard() {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col h-full overflow-hidden">
+            <main className="flex-1 flex flex-col h-full overflow-auto">
                 {activeTab === 'products' ? (
                     <>
                         <header className="flex items-center justify-between px-8 py-6">
