@@ -92,6 +92,12 @@ export default function Header({ categories = [] }: HeaderProps) {
 
                     {/* Desktop Navigation - Categories */}
                     <nav className="hidden lg:flex items-center gap-8">
+                        <Link
+                            href="/"
+                            className="text-sm font-medium text-text-main hover:text-primary transition-colors"
+                        >
+                            Todos
+                        </Link>
                         {categories.slice(0, 5).map((category) => (
                             <button
                                 key={category.id}
@@ -208,6 +214,13 @@ export default function Header({ categories = [] }: HeaderProps) {
                         <nav className="p-4">
                             <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-3 px-2">Categorías</p>
                             <div className="space-y-1">
+                                <Link
+                                    href="/"
+                                    onClick={() => setShowMobileMenu(false)}
+                                    className="block w-full px-4 py-3 text-left text-text-main font-medium rounded-xl hover:bg-primary/10 hover:text-primary transition-colors"
+                                >
+                                    Todos
+                                </Link>
                                 {categories.map((category) => (
                                     <button
                                         key={category.id}
