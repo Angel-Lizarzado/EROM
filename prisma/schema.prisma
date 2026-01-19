@@ -28,6 +28,7 @@ model Product {
   stock       Int      @default(0)
   image       String   // Imagen principal (retrocompatibilidad)
   images      String[] // Array de URLs de imágenes adicionales
+  videos      String[] // Array de URLs de videos
   categoryId  Int
   category    Category @relation(fields: [categoryId], references: [id])
   sales       Sale[]

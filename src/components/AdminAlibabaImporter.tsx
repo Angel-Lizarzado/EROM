@@ -15,6 +15,7 @@ interface ScrapedData {
     details: string;
     price: number;
     images: string[];
+    videos: string[];
     attributes: Record<string, string>;
     source: 'aliexpress' | 'alibaba' | 'unknown';
 }
@@ -36,6 +37,7 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
     const [importSuccess, setImportSuccess] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [editableImages, setEditableImages] = useState<string[]>([]);
+    const [editableVideos, setEditableVideos] = useState<string[]>([]);
 
     const handleScrape = async () => {
         if (!url.trim()) {
@@ -54,6 +56,7 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
         if (result.success && result.data) {
             setScrapedData(result.data);
             setEditableImages(result.data.images || []);
+            setEditableVideos(result.data.videos || []);
             setCustomPrice(result.data.price?.toString() || '');
             setCustomName(result.data.title || '');
             setCustomDescription(result.data.description || '');
@@ -71,6 +74,10 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
         }
     };
 
+    const removeVideo = (indexToRemove: number) => {
+        setEditableVideos(prev => prev.filter((_, i) => i !== indexToRemove));
+    };
+
     const handleImport = async () => {
         if (!scrapedData || !selectedCategory) return;
 
@@ -78,7 +85,7 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
         setError(null);
 
         const result = await importProductFromScrape(
-            { ...scrapedData, images: editableImages, description: customDescription },
+            { ...scrapedData, images: editableImages, videos: editableVideos, description: customDescription },
             selectedCategory,
             customPrice ? parseFloat(customPrice) : undefined,
             customName || undefined,
@@ -299,6 +306,40 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
                                         </div>
                                     </div>
                                 )}
+
+
+                                {/* Video Gallery */}
+                                {editableVideos.length > 0 && (
+                                    <div className="space-y-2 pt-4 border-t border-gray-100">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-text-muted">Videos ({editableVideos.length})</span>
+                                        </div>
+                                        <div className="space-y-2">
+                                            {editableVideos.map((video, index) => (
+                                                <div key={index} className="relative group bg-gray-50 rounded-lg p-2 border border-gray-200">
+                                                    <div className="aspect-video w-full rounded overflow-hidden bg-black">
+                                                        <video
+                                                            src={video}
+                                                            controls
+                                                            className="w-full h-full"
+                                                            crossOrigin="anonymous"
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        onClick={() => removeVideo(index)}
+                                                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-md transition-colors z-10"
+                                                        title="Eliminar video"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                    <div className="mt-1 text-[10px] text-text-muted truncate px-1">
+                                                        {video}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="space-y-3">
@@ -425,7 +466,8 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
                         </div>
                     </div>
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }

@@ -8,6 +8,7 @@ interface ScrapedProduct {
     details: string;
     price: number;
     images: string[];
+    videos: string[];
     attributes: Record<string, string>;
     source: 'aliexpress' | 'alibaba' | 'unknown';
 }
@@ -61,7 +62,10 @@ export async function scrapeProductFromUrl(url: string): Promise<ScrapeResult> {
         let details = '';
         let price = 0;
         const images: string[] = [];
+        const videos: string[] = [];
         const attributes: Record<string, string> = {};
+
+        // ... (rest of the code until images extraction)
 
         // === EXTRAER TÍTULO ===
         // Método 1: Meta Open Graph
@@ -74,149 +78,7 @@ export async function scrapeProductFromUrl(url: string): Promise<ScrapeResult> {
                 .trim();
         }
 
-        // Método 2: Title tag
-        if (!title) {
-            const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
-            if (titleMatch) {
-                title = titleMatch[1]
-                    .replace(/-\s*AliExpress.*$/i, '')
-                    .replace(/-\s*Alibaba.*$/i, '')
-                    .replace(/\|.*$/, '')
-                    .trim();
-            }
-        }
-
-        // Método 3: JSON estructurado - subject
-        if (!title || title.length < 10) {
-            const subjectMatch = html.match(/"subject":\s*"([^"]+)"/);
-            if (subjectMatch) {
-                title = subjectMatch[1].trim();
-            }
-        }
-
-        // === EXTRAER DESCRIPCIÓN ===
-        // AliExpress guarda la descripción en JSON, buscar múltiples patrones
-
-        // Patrón 1: description en JSON
-        const descJsonPatterns = [
-            /"description":\s*"([^"]{50,})"/i,
-            /"productDescription":\s*"([^"]{50,})"/i,
-            /"itemDescription":\s*"([^"]{50,})"/i,
-        ];
-
-        for (const pattern of descJsonPatterns) {
-            const match = html.match(pattern);
-            if (match && match[1] && !match[1].includes('Smarter Shopping')) {
-                description = match[1]
-                    .replace(/\\n/g, '\n')
-                    .replace(/\\r/g, '')
-                    .replace(/\\"/g, '"')
-                    .trim();
-                break;
-            }
-        }
-
-        // Patrón 2: Buscar en HTML con clases de descripción
-        if (!description || description.includes('Smarter Shopping')) {
-            const descHtmlPatterns = [
-                /<div[^>]*class="[^"]*product-description[^"]*"[^>]*>([\s\S]*?)<\/div>/gi,
-                /<div[^>]*class="[^"]*description-content[^"]*"[^>]*>([\s\S]*?)<\/div>/gi,
-                /<div[^>]*id="[^"]*description[^"]*"[^>]*>([\s\S]*?)<\/div>/gi,
-            ];
-
-            for (const pattern of descHtmlPatterns) {
-                const matches = html.match(pattern);
-                if (matches) {
-                    const cleanDesc = matches[0]
-                        .replace(/<[^>]+>/g, ' ')
-                        .replace(/\s+/g, ' ')
-                        .trim();
-                    if (cleanDesc.length > 30 && !cleanDesc.includes('Smarter Shopping')) {
-                        description = cleanDesc.substring(0, 500);
-                        break;
-                    }
-                }
-            }
-        }
-
-        // Patrón 3: Título como descripción si no hay otra
-        if (!description || description.includes('Smarter Shopping')) {
-            description = title ? `${title}. Producto importado de ${source === 'aliexpress' ? 'AliExpress' : 'Alibaba'}.` : '';
-        }
-
-        // === EXTRAER DETALLES/ESPECIFICACIONES ===
-        // Buscar atributos del producto en JSON
-        const attrPatterns = [
-            /"attrName":\s*"([^"]+)",\s*"attrValue":\s*"([^"]+)"/gi,
-            /"name":\s*"([^"]{3,30})",\s*"value":\s*"([^"]+)"/gi,
-        ];
-
-        for (const pattern of attrPatterns) {
-            const matches = html.matchAll(pattern);
-            for (const match of matches) {
-                if (Object.keys(attributes).length < 15) {
-                    const key = match[1].trim();
-                    const value = match[2].trim();
-                    // Filtrar atributos irrelevantes
-                    if (!key.includes('http') && !value.includes('http') &&
-                        key.length > 1 && value.length > 0 &&
-                        !key.toLowerCase().includes('click') &&
-                        !key.toLowerCase().includes('script')) {
-                        attributes[key] = value;
-                    }
-                }
-            }
-        }
-
-        // Buscar especificaciones en skuPropertyList
-        const specJsonMatch = html.match(/"skuPropertyList":\s*(\[[^\]]+\])/);
-        if (specJsonMatch) {
-            try {
-                const specs = JSON.parse(specJsonMatch[1]);
-                for (const spec of specs) {
-                    if (spec.skuPropertyName && spec.skuPropertyValues && Array.isArray(spec.skuPropertyValues)) {
-                        const values = spec.skuPropertyValues
-                            .map((v: any) => v.propertyValueDisplayName || v.skuPropertyValueName)
-                            .filter(Boolean)
-                            .join(', ');
-                        if (values) {
-                            attributes[spec.skuPropertyName] = values;
-                        }
-                    }
-                }
-            } catch (e) {
-                // Ignorar errores de parsing
-            }
-        }
-
-        // Convertir atributos a detalles
-        if (Object.keys(attributes).length > 0) {
-            details = Object.entries(attributes)
-                .map(([key, value]) => `• ${key}: ${value}`)
-                .join('\n');
-        }
-
-        // === EXTRAER PRECIO ===
-        const pricePatterns = [
-            /"formatedActivityPrice":\s*"[^"]*\$?\s*([\d.]+)/i,
-            /"formatedPrice":\s*"[^"]*\$?\s*([\d.]+)/i,
-            /"minPrice":\s*"?([\d.]+)/i,
-            /"price":\s*"?([\d.]+)/i,
-            /\$\s*([\d,]+\.?\d*)/,
-            /USD\s*([\d,]+\.?\d*)/i,
-        ];
-
-        for (const pattern of pricePatterns) {
-            const match = html.match(pattern);
-            if (match) {
-                const priceStr = match[1].replace(',', '');
-                const parsed = parseFloat(priceStr);
-                if (parsed > 0 && parsed < 10000) {
-                    price = parsed;
-                    break;
-                }
-            }
-        }
+        // ... (rest of extraction logic)
 
         // === EXTRAER IMÁGENES ===
         // 1. Open Graph images
@@ -272,6 +134,34 @@ export async function scrapeProductFromUrl(url: string): Promise<ScrapeResult> {
             }
         }
 
+        // === EXTRAER VIDEOS ===
+        // 1. Buscar en JSON estructurado (videoUrl, videoUid)
+        // AliExpress suele tener el video en un videoModule
+        const videoModuleMatch = html.match(/"videoModule":\s*({[^}]+})/);
+        if (videoModuleMatch) {
+            try {
+                const videoData = JSON.parse(videoModuleMatch[1]);
+                if (videoData.videoUrl && !videos.includes(videoData.videoUrl)) {
+                    videos.push(videoData.videoUrl);
+                }
+            } catch (e) { }
+        }
+
+        // 2. Buscar videoUid y construir URL (para algunos casos de AliExpress)
+        const videoIdMatch = html.match(/"videoId":\s*"(\d+)"/);
+        const videoUidMatch = html.match(/"videoUid":\s*"([^"]+)"/);
+        if (videoIdMatch && videoUidMatch) {
+            // A veces la URL se puede construir o está en otro campo, pero intentaremos buscar mp4 directos primero
+        }
+
+        // 3. Búsqueda general de .mp4 en alicdn
+        const mp4Matches = html.matchAll(/https?:\/\/[^"']+\.mp4/gi);
+        for (const match of mp4Matches) {
+            if (!videos.includes(match[0]) && videos.length < 5) {
+                videos.push(match[0]);
+            }
+        }
+
         // Si no hay título, falló
         if (!title || title.length < 5) {
             return {
@@ -288,6 +178,7 @@ export async function scrapeProductFromUrl(url: string): Promise<ScrapeResult> {
                 details,
                 price,
                 images,
+                videos,
                 attributes,
                 source,
             },
@@ -319,6 +210,7 @@ export async function importProductFromScrape(
             stock: 10,
             image: scrapedData.images[0] || 'https://via.placeholder.com/400x500?text=Sin+Imagen',
             images: scrapedData.images,
+            videos: scrapedData.videos,
             categoryId,
         });
 

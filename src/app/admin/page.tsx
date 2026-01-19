@@ -65,6 +65,7 @@ export default function AdminDashboard() {
     const [newCategoryName, setNewCategoryName] = useState('');
     const [activeTab, setActiveTab] = useState<'products' | 'slides' | 'categories' | 'sales'>('products');
     const [editableImages, setEditableImages] = useState<string[]>([]);
+    const [editableVideos, setEditableVideos] = useState<string[]>([]);
 
     const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<ProductFormData>();
     const priceUsd = watch('priceUsd');
@@ -103,6 +104,7 @@ export default function AdminDashboard() {
     const openCreateModal = () => {
         setEditingProduct(null);
         setEditableImages([]);
+        setEditableVideos([]);
         reset({
             name: '',
             description: '',
@@ -119,6 +121,8 @@ export default function AdminDashboard() {
     const openEditModal = (product: ProductWithCategory) => {
         setEditingProduct(product);
         setEditableImages(product.images || []);
+        // @ts-ignore - videos might not be in the type yet if prisma client didn't update
+        setEditableVideos(product.videos || []);
         reset({
             name: product.name,
             description: product.description,
@@ -142,12 +146,23 @@ export default function AdminDashboard() {
         }
     };
 
+    const removeEditableVideo = (indexToRemove: number) => {
+        setEditableVideos(prev => prev.filter((_, i) => i !== indexToRemove));
+    };
+
+    const addEditableVideo = (url: string) => {
+        if (url && !editableVideos.includes(url)) {
+            setEditableVideos(prev => [...prev, url]);
+        }
+    };
+
     const onSubmit = async (data: ProductFormData) => {
         setSaving(true);
         try {
             const productData = {
                 ...data,
                 images: editableImages,
+                videos: editableVideos,
             };
             if (editingProduct) {
                 await updateProduct(editingProduct.id, productData);
@@ -508,6 +523,67 @@ export default function AdminDashboard() {
                                     </button>
                                 </div>
                             </div>
+
+                            {/* Videos Section */}
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="block text-sm font-bold text-text-main">
+                                        Videos del Producto ({editableVideos.length})
+                                    </label>
+                                    <span className="text-xs text-text-muted">Clic en X para eliminar</span>
+                                </div>
+
+                                {/* Video Gallery */}
+                                {editableVideos.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {editableVideos.map((video, index) => (
+                                            <div key={index} className="relative group w-32">
+                                                <div className="aspect-video w-full rounded-lg overflow-hidden border border-border bg-black">
+                                                    <video
+                                                        src={video}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeEditableVideo(index)}
+                                                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-md z-10"
+                                                    title="Eliminar video"
+                                                >
+                                                    ×
+                                                </button>
+                                                <div className="text-[10px] text-text-muted truncate mt-1">
+                                                    {video}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Add New Video */}
+                                <div className="flex gap-2">
+                                    <input
+                                        type="url"
+                                        placeholder="URL de video (mp4, webm)..."
+                                        className="flex-1 px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                        id="newVideoUrl"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const input = document.getElementById('newVideoUrl') as HTMLInputElement;
+                                            if (input.value) {
+                                                addEditableVideo(input.value);
+                                                input.value = '';
+                                            }
+                                        }}
+                                        className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium transition-colors"
+                                    >
+                                        Agregar Video
+                                    </button>
+                                </div>
+                            </div>
+
 
                             {/* Name */}
                             <div>

@@ -61,12 +61,14 @@ export async function createProduct(data: {
     stock: number;
     image: string;
     images?: string[];
+    videos?: string[];
     categoryId: number;
 }): Promise<Product> {
     return prisma.product.create({
         data: {
             ...data,
             images: data.images || [],
+            videos: data.videos || [],
         },
     });
 }
@@ -83,6 +85,7 @@ export async function updateProduct(
         stock?: number;
         image?: string;
         images?: string[];
+        videos?: string[];
         categoryId?: number;
     }
 ): Promise<Product> {
