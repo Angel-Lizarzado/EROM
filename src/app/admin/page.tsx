@@ -33,6 +33,7 @@ interface ProductFormData {
     isOffer: boolean;
     stock: number;
     image: string;
+    images?: string[];
     categoryId: number;
 }
 
@@ -63,6 +64,7 @@ export default function AdminDashboard() {
     const [saving, setSaving] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState('');
     const [activeTab, setActiveTab] = useState<'products' | 'slides' | 'categories' | 'sales'>('products');
+    const [editableImages, setEditableImages] = useState<string[]>([]);
 
     const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<ProductFormData>();
     const priceUsd = watch('priceUsd');
@@ -100,6 +102,7 @@ export default function AdminDashboard() {
 
     const openCreateModal = () => {
         setEditingProduct(null);
+        setEditableImages([]);
         reset({
             name: '',
             description: '',
@@ -115,6 +118,7 @@ export default function AdminDashboard() {
 
     const openEditModal = (product: ProductWithCategory) => {
         setEditingProduct(product);
+        setEditableImages(product.images || []);
         reset({
             name: product.name,
             description: product.description,
@@ -128,13 +132,27 @@ export default function AdminDashboard() {
         setShowModal(true);
     };
 
+    const removeEditableImage = (indexToRemove: number) => {
+        setEditableImages(prev => prev.filter((_, i) => i !== indexToRemove));
+    };
+
+    const addEditableImage = (url: string) => {
+        if (url && !editableImages.includes(url)) {
+            setEditableImages(prev => [...prev, url]);
+        }
+    };
+
     const onSubmit = async (data: ProductFormData) => {
         setSaving(true);
         try {
+            const productData = {
+                ...data,
+                images: editableImages,
+            };
             if (editingProduct) {
-                await updateProduct(editingProduct.id, data);
+                await updateProduct(editingProduct.id, productData);
             } else {
-                await createProduct(data);
+                await createProduct(productData);
             }
             await loadData();
             setShowModal(false);
@@ -421,15 +439,74 @@ export default function AdminDashboard() {
                         </div>
 
                         <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6">
-                            {/* Image */}
+                            {/* Imagen Principal */}
                             <div>
-                                <label className="block text-sm font-bold text-text-main mb-1.5">Imagen del Producto</label>
+                                <label className="block text-sm font-bold text-text-main mb-1.5">Imagen Principal</label>
                                 <ImageUploader
                                     value={watch('image') || ''}
                                     onChange={(url) => setValue('image', url)}
                                 />
                                 <input type="hidden" {...register('image', { required: 'La imagen es requerida' })} />
                                 {errors.image && <p className="text-red-500 text-xs mt-1">{errors.image.message}</p>}
+                            </div>
+
+                            {/* Imágenes Adicionales */}
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="block text-sm font-bold text-text-main">Imágenes Adicionales ({editableImages.length})</label>
+                                    <span className="text-xs text-text-muted">Clic en X para eliminar</span>
+                                </div>
+
+                                {/* Galería de imágenes */}
+                                {editableImages.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {editableImages.map((img, index) => (
+                                            <div key={index} className="relative group">
+                                                <div className="w-16 h-16 rounded-lg overflow-hidden border border-border">
+                                                    <img
+                                                        src={img}
+                                                        alt={`Imagen ${index + 1}`}
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/64?text=Error';
+                                                        }}
+                                                    />
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeEditableImage(index)}
+                                                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-md"
+                                                    title="Eliminar imagen"
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Agregar nueva imagen */}
+                                <div className="flex gap-2">
+                                    <input
+                                        type="url"
+                                        placeholder="URL de imagen adicional..."
+                                        className="flex-1 px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                        id="newImageUrl"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const input = document.getElementById('newImageUrl') as HTMLInputElement;
+                                            if (input.value) {
+                                                addEditableImage(input.value);
+                                                input.value = '';
+                                            }
+                                        }}
+                                        className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium transition-colors"
+                                    >
+                                        Agregar
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Name */}
