@@ -13,15 +13,21 @@ export async function uploadImage(formData: FormData): Promise<{ success: boolea
         }
 
         // Validate file type
-        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        const imageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        const videoTypes = ['video/mp4', 'video/webm'];
+        const validTypes = [...imageTypes, ...videoTypes];
+
         if (!validTypes.includes(file.type)) {
-            return { success: false, error: 'Tipo de archivo no válido. Use JPG, PNG, WebP o GIF' };
+            return { success: false, error: 'Tipo de archivo no válido. Use JPG, PNG, WebP, GIF, MP4 o WebM' };
         }
 
-        // Validate file size (max 5MB)
-        const maxSize = 5 * 1024 * 1024;
+        // Validate file size
+        // Images: 5MB, Videos: 50MB
+        const isVideo = videoTypes.includes(file.type);
+        const maxSize = isVideo ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
+
         if (file.size > maxSize) {
-            return { success: false, error: 'El archivo es muy grande. Máximo 5MB' };
+            return { success: false, error: `El archivo es muy grande. Máximo ${isVideo ? '50MB' : '5MB'}` };
         }
 
         // Create uploads directory if it doesn't exist
@@ -32,7 +38,7 @@ export async function uploadImage(formData: FormData): Promise<{ success: boolea
 
         // Generate unique filename
         const timestamp = Date.now();
-        const extension = file.name.split('.').pop() || 'jpg';
+        const extension = file.name.split('.').pop() || (isVideo ? 'mp4' : 'jpg');
         const filename = `${timestamp}-${Math.random().toString(36).substring(7)}.${extension}`;
         const filepath = path.join(uploadsDir, filename);
 
@@ -45,7 +51,7 @@ export async function uploadImage(formData: FormData): Promise<{ success: boolea
         const url = `/uploads/${filename}`;
         return { success: true, url };
     } catch (error) {
-        console.error('Error uploading image:', error);
-        return { success: false, error: 'Error al subir la imagen' };
+        console.error('Error uploading file:', error);
+        return { success: false, error: 'Error al subir el archivo' };
     }
 }

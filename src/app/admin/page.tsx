@@ -18,6 +18,7 @@ import AdminSlidesSection from '@/components/AdminSlidesSection';
 import AdminCategoriesSection from '@/components/AdminCategoriesSection';
 import AdminSalesSection from '@/components/AdminSalesSection';
 import ImageUploader from '@/components/ImageUploader';
+import VideoUploader from '@/components/VideoUploader';
 import AdminAlibabaImporter from '@/components/AdminAlibabaImporter';
 
 interface Category {
@@ -542,27 +543,18 @@ export default function AdminDashboard() {
                                         </button>
                                     </div>
 
-                                    {/* Add Video Input */}
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="url"
-                                            placeholder="URL de video (mp4)..."
-                                            className="flex-1 px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                            id="newVideoUrl"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const input = document.getElementById('newVideoUrl') as HTMLInputElement;
-                                                if (input.value) {
-                                                    addEditableVideo(input.value);
-                                                    input.value = '';
+                                    {/* Add Video Input (with Upload) */}
+                                    <div className="w-full">
+                                        <div className="text-xs font-bold text-text-main mb-1.5">+ Agregar Video</div>
+                                        <VideoUploader
+                                            value=""
+                                            onChange={(url) => {
+                                                if (url) {
+                                                    addEditableVideo(url);
                                                 }
                                             }}
-                                            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
-                                        >
-                                            + Video
-                                        </button>
+                                            placeholder="Pegar URL o subir archivo..."
+                                        />
                                     </div>
                                 </div>
                             </div>
