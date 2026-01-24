@@ -226,121 +226,130 @@ export default function AdminAlibabaImporter({ categories, onProductImported }: 
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Image Gallery */}
+                            {/* Media Gallery (Images + Videos) */}
                             <div className="space-y-2">
-                                <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
-                                    {editableImages.length > 0 ? (
-                                        <>
-                                            <img
-                                                src={editableImages[currentImageIndex] || editableImages[0]}
-                                                alt={`Imagen ${currentImageIndex + 1}`}
-                                                className="w-full h-full object-cover"
-                                                onError={(e) => {
-                                                    (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x400?text=Sin+Imagen';
-                                                }}
-                                            />
-                                            {/* Navigation arrows */}
-                                            {editableImages.length > 1 && (
-                                                <>
-                                                    <button
-                                                        onClick={prevImage}
-                                                        disabled={currentImageIndex === 0}
-                                                        className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center disabled:opacity-30 hover:bg-black/70 transition-colors"
-                                                    >
-                                                        <ChevronLeft className="h-5 w-5" />
-                                                    </button>
-                                                    <button
-                                                        onClick={nextImage}
-                                                        disabled={currentImageIndex === editableImages.length - 1}
-                                                        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center disabled:opacity-30 hover:bg-black/70 transition-colors"
-                                                    >
-                                                        <ChevronRight className="h-5 w-5" />
-                                                    </button>
-                                                </>
-                                            )}
-                                            {/* Image counter */}
-                                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1 rounded-full">
-                                                {currentImageIndex + 1} / {editableImages.length}
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-text-muted">
-                                            <Package className="h-16 w-16 opacity-30" />
-                                        </div>
-                                    )}
+                                <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative group">
+                                    {(() => {
+                                        const allMedia = [
+                                            ...editableImages.map(url => ({ type: 'image' as const, url })),
+                                            ...editableVideos.map(url => ({ type: 'video' as const, url }))
+                                        ];
+                                        const currentMedia = allMedia[currentImageIndex] || allMedia[0];
+
+                                        if (!currentMedia) {
+                                            return (
+                                                <div className="w-full h-full flex items-center justify-center text-text-muted">
+                                                    <Package className="h-16 w-16 opacity-30" />
+                                                </div>
+                                            );
+                                        }
+
+                                        return (
+                                            <>
+                                                {currentMedia.type === 'video' ? (
+                                                    <video
+                                                        src={currentMedia.url}
+                                                        controls
+                                                        className="w-full h-full object-contain bg-black"
+                                                        // @ts-ignore
+                                                        referrerPolicy="no-referrer"
+                                                    />
+                                                ) : (
+                                                    <img
+                                                        src={currentMedia.url}
+                                                        alt={`Media ${currentImageIndex + 1}`}
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x400?text=Sin+Imagen';
+                                                        }}
+                                                    />
+                                                )}
+
+                                                {/* Navigation arrows (only if multiple) */}
+                                                {allMedia.length > 1 && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => setCurrentImageIndex(prev => Math.max(0, prev - 1))}
+                                                            disabled={currentImageIndex === 0}
+                                                            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center disabled:opacity-30 hover:bg-black/70 transition-colors z-10"
+                                                        >
+                                                            <ChevronLeft className="h-5 w-5" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setCurrentImageIndex(prev => Math.min(allMedia.length - 1, prev + 1))}
+                                                            disabled={currentImageIndex === allMedia.length - 1}
+                                                            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center disabled:opacity-30 hover:bg-black/70 transition-colors z-10"
+                                                        >
+                                                            <ChevronRight className="h-5 w-5" />
+                                                        </button>
+                                                    </>
+                                                )}
+
+                                                {/* Counter */}
+                                                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1 rounded-full z-10">
+                                                    {currentImageIndex + 1} / {allMedia.length}
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
                                 </div>
 
-                                {/* Thumbnails with delete option */}
-                                {editableImages.length > 0 && (
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs font-bold text-text-muted">Imágenes ({editableImages.length})</span>
-                                            <span className="text-xs text-text-muted">Haz clic en X para eliminar</span>
-                                        </div>
-                                        <div className="flex gap-2 overflow-x-auto pb-1">
-                                            {editableImages.map((img, index) => (
-                                                <div key={index} className="relative flex-shrink-0 group">
-                                                    <button
-                                                        onClick={() => setCurrentImageIndex(index)}
-                                                        className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${currentImageIndex === index ? 'border-orange-500' : 'border-transparent hover:border-orange-300'}`}
-                                                    >
-                                                        <img
-                                                            src={img}
-                                                            alt={`Imagen ${index + 1}`}
-                                                            className="w-full h-full object-cover"
-                                                            onError={(e) => {
-                                                                (e.target as HTMLImageElement).style.display = 'none';
-                                                            }}
-                                                        />
-                                                    </button>
-                                                    {/* Delete button */}
-                                                    <button
-                                                        onClick={() => removeImage(index)}
-                                                        className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-md transition-colors"
-                                                        title="Eliminar imagen"
-                                                    >
-                                                        ×
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                                {/* Thumbnails Unified */}
+                                {(() => {
+                                    const allMedia = [
+                                        ...editableImages.map((url, i) => ({ type: 'image' as const, url, originalIndex: i })),
+                                        ...editableVideos.map((url, i) => ({ type: 'video' as const, url, originalIndex: i }))
+                                    ];
 
+                                    if (allMedia.length === 0) return null;
 
-                                {/* Video Gallery */}
-                                {editableVideos.length > 0 && (
-                                    <div className="space-y-2 pt-4 border-t border-gray-100">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs font-bold text-text-muted">Videos ({editableVideos.length})</span>
-                                        </div>
+                                    return (
                                         <div className="space-y-2">
-                                            {editableVideos.map((video, index) => (
-                                                <div key={index} className="relative group bg-gray-50 rounded-lg p-2 border border-gray-200">
-                                                    <div className="aspect-video w-full rounded overflow-hidden bg-black">
-                                                        <video
-                                                            src={video}
-                                                            controls
-                                                            className="w-full h-full"
-                                                            // @ts-ignore
-                                                            referrerPolicy="no-referrer"
-                                                        />
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs font-bold text-text-muted">Multimedia ({allMedia.length})</span>
+                                                <span className="text-xs text-text-muted">Video = <span className="inline-block w-2 h-2 bg-black rounded-full align-middle mx-1"></span></span>
+                                            </div>
+                                            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                                                {allMedia.map((media, index) => (
+                                                    <div key={index} className="relative flex-shrink-0 group">
+                                                        <button
+                                                            onClick={() => setCurrentImageIndex(index)}
+                                                            className={`relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${currentImageIndex === index ? 'border-orange-500' : 'border-transparent hover:border-orange-300'}`}
+                                                        >
+                                                            {media.type === 'video' ? (
+                                                                <div className="w-full h-full bg-black flex items-center justify-center">
+                                                                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                                                                        <div className="w-0 h-0 border-l-[6px] border-l-white border-y-[4px] border-y-transparent ml-0.5"></div>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <img
+                                                                    src={media.url}
+                                                                    alt={`Thumb ${index + 1}`}
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            )}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                if (media.type === 'image') removeImage(media.originalIndex);
+                                                                else removeVideo(media.originalIndex);
+                                                                // Adjust index if we removed the current one or one before it
+                                                                if (index <= currentImageIndex && currentImageIndex > 0) {
+                                                                    setCurrentImageIndex(prev => prev - 1);
+                                                                }
+                                                            }}
+                                                            className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-md transition-colors z-20"
+                                                            title={`Eliminar ${media.type === 'image' ? 'imagen' : 'video'}`}
+                                                        >
+                                                            ×
+                                                        </button>
                                                     </div>
-                                                    <button
-                                                        onClick={() => removeVideo(index)}
-                                                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-md transition-colors z-10"
-                                                        title="Eliminar video"
-                                                    >
-                                                        ×
-                                                    </button>
-                                                    <div className="mt-1 text-[10px] text-text-muted truncate px-1">
-                                                        {video}
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    );
+                                })()}
                             </div>
 
                             <div className="space-y-3">

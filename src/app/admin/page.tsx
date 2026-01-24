@@ -465,122 +465,105 @@ export default function AdminDashboard() {
                                 {errors.image && <p className="text-red-500 text-xs mt-1">{errors.image.message}</p>}
                             </div>
 
-                            {/* Imágenes Adicionales */}
+                            {/* Multimedia Gallery (Unified) */}
                             <div>
                                 <div className="flex items-center justify-between mb-2">
-                                    <label className="block text-sm font-bold text-text-main">Imágenes Adicionales ({editableImages.length})</label>
-                                    <span className="text-xs text-text-muted">Clic en X para eliminar</span>
+                                    <label className="block text-sm font-bold text-text-main">Galería Multimedia</label>
+                                    <span className="text-xs text-text-muted"> Imágenes & Videos</span>
                                 </div>
 
-                                {/* Galería de imágenes */}
-                                {editableImages.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mb-3">
-                                        {editableImages.map((img, index) => (
-                                            <div key={index} className="relative group">
-                                                <div className="w-16 h-16 rounded-lg overflow-hidden border border-border">
-                                                    <img
-                                                        src={img}
-                                                        alt={`Imagen ${index + 1}`}
-                                                        className="w-full h-full object-cover"
-                                                        onError={(e) => {
-                                                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/64?text=Error';
-                                                        }}
-                                                    />
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeEditableImage(index)}
-                                                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-md"
-                                                    title="Eliminar imagen"
-                                                >
-                                                    ×
-                                                </button>
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                    {/* Images */}
+                                    {editableImages.map((img, index) => (
+                                        <div key={`img-${index}`} className="relative group w-20 h-20">
+                                            <div className="w-full h-full rounded-lg overflow-hidden border border-border">
+                                                <img
+                                                    src={img}
+                                                    alt={`Img ${index}`}
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => (e.target as HTMLImageElement).src = 'https://via.placeholder.com/64?text=ERR'}
+                                                />
                                             </div>
-                                        ))}
-                                    </div>
-                                )}
+                                            <button
+                                                type="button"
+                                                onClick={() => removeEditableImage(index)}
+                                                className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-md z-10"
+                                                title="Eliminar imagen"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    ))}
 
-                                {/* Agregar nueva imagen */}
-                                <div className="flex gap-2">
-                                    <input
-                                        type="url"
-                                        placeholder="URL de imagen adicional..."
-                                        className="flex-1 px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                        id="newImageUrl"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const input = document.getElementById('newImageUrl') as HTMLInputElement;
-                                            if (input.value) {
-                                                addEditableImage(input.value);
-                                                input.value = '';
-                                            }
-                                        }}
-                                        className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium transition-colors"
-                                    >
-                                        Agregar
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Videos Section */}
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <label className="block text-sm font-bold text-text-main">
-                                        Videos del Producto ({editableVideos.length})
-                                    </label>
-                                    <span className="text-xs text-text-muted">Clic en X para eliminar</span>
-                                </div>
-
-                                {/* Video Gallery */}
-                                {editableVideos.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mb-3">
-                                        {editableVideos.map((video, index) => (
-                                            <div key={index} className="relative group w-32">
-                                                <div className="aspect-video w-full rounded-lg overflow-hidden border border-border bg-black">
-                                                    <video
-                                                        src={video}
-                                                        className="w-full h-full object-cover"
-                                                    />
+                                    {/* Videos */}
+                                    {editableVideos.map((video, index) => (
+                                        <div key={`vid-${index}`} className="relative group w-20 h-20">
+                                            <div className="w-full h-full rounded-lg overflow-hidden border border-border bg-black flex items-center justify-center cursor-pointer group-hover:ring-2 ring-primary">
+                                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                                                    <div className="w-0 h-0 border-l-[8px] border-l-white border-y-[6px] border-y-transparent ml-1"></div>
                                                 </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeEditableVideo(index)}
-                                                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-md z-10"
-                                                    title="Eliminar video"
-                                                >
-                                                    ×
-                                                </button>
-                                                <div className="text-[10px] text-text-muted truncate mt-1">
-                                                    {video}
-                                                </div>
+                                                {/* Mini video preview on hover could go here, but keep simple for now */}
                                             </div>
-                                        ))}
-                                    </div>
-                                )}
+                                            <button
+                                                type="button"
+                                                onClick={() => removeEditableVideo(index)}
+                                                className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-md z-10"
+                                                title="Eliminar video"
+                                            >
+                                                ×
+                                            </button>
+                                            <span className="absolute bottom-0 inset-x-0 bg-black/60 text-[8px] text-white truncate px-1 py-0.5 text-center">Video</span>
+                                        </div>
+                                    ))}
+                                </div>
 
-                                {/* Add New Video */}
-                                <div className="flex gap-2">
-                                    <input
-                                        type="url"
-                                        placeholder="URL de video (mp4, webm)..."
-                                        className="flex-1 px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                        id="newVideoUrl"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const input = document.getElementById('newVideoUrl') as HTMLInputElement;
-                                            if (input.value) {
-                                                addEditableVideo(input.value);
-                                                input.value = '';
-                                            }
-                                        }}
-                                        className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium transition-colors"
-                                    >
-                                        Agregar Video
-                                    </button>
+                                {/* Inputs for New Media */}
+                                <div className="flex flex-col gap-2">
+                                    {/* Add Image Input */}
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="url"
+                                            placeholder="URL de imagen adicional..."
+                                            className="flex-1 px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                            id="newImageUrl"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const input = document.getElementById('newImageUrl') as HTMLInputElement;
+                                                if (input.value) {
+                                                    addEditableImage(input.value);
+                                                    input.value = '';
+                                                }
+                                            }}
+                                            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+                                        >
+                                            + Imagen
+                                        </button>
+                                    </div>
+
+                                    {/* Add Video Input */}
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="url"
+                                            placeholder="URL de video (mp4)..."
+                                            className="flex-1 px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                            id="newVideoUrl"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const input = document.getElementById('newVideoUrl') as HTMLInputElement;
+                                                if (input.value) {
+                                                    addEditableVideo(input.value);
+                                                    input.value = '';
+                                                }
+                                            }}
+                                            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+                                        >
+                                            + Video
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
