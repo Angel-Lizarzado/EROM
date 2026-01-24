@@ -21,16 +21,32 @@ export default function ProductGallery({
     stock
 }: ProductGalleryProps) {
     // Combinar imágenes y videos en una sola lista de "media"
-    // Filtrar imagen principal de las adicionales para no duplicar
-    const imageItems = [mainImage, ...images.filter(img => img !== mainImage)]
-        .filter(Boolean)
-        .map(url => ({ type: 'image' as const, url }));
+    // Helper para detectar tipo de medio
+    const getMediaType = (url: string) => {
+        if (!url) return 'image';
+        const lower = url.toLowerCase();
+        if (lower.endsWith('.mp4') || lower.endsWith('.webm') || lower.includes('resource_type=video')) return 'video';
+        return 'image';
+    };
 
-    const videoItems = (videos || [])
-        .filter(Boolean)
-        .map(url => ({ type: 'video' as const, url }));
+    // Combinar todo en una sola lista de "media"
+    // 1. Imagen Principal
+    const mainItem = mainImage ? { type: getMediaType(mainImage), url: mainImage } : null;
 
-    const allMedia = [...imageItems, ...videoItems];
+    // 2. Imágenes (que ahora pueden contener videos si se reordenan)
+    const galleryItems = (images || [])
+        .filter(url => url !== mainImage) // Evitar duplicar mainImage
+        .map(url => ({ type: getMediaType(url), url }));
+
+    // 3. Videos (legacy o adicionales)
+    const videoItemsList = (videos || []).map(url => ({ type: 'video' as const, url }));
+
+    // Fusionar todo
+    const allMedia = [
+        ...(mainItem ? [mainItem] : []),
+        ...galleryItems,
+        ...videoItemsList
+    ];
     const [currentIndex, setCurrentIndex] = useState(0);
     const videoRef = useRef<HTMLVideoElement>(null);
 
