@@ -83,10 +83,14 @@ export default function Header({ categories = [] }: HeaderProps) {
                             <Menu className="h-6 w-6" />
                         </button>
                         <Link href="/" className="flex items-center gap-2 group">
-                            <div className="flex size-8 items-center justify-center rounded-full bg-primary/20 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
-                                <span className="text-lg">🌸</span>
+                            {/* Logo Image */}
+                            <div className="relative h-8 w-auto">
+                                <img
+                                    src="/EROM-LogoHor.png"
+                                    alt="EROM Logo"
+                                    className="h-full w-auto object-contain"
+                                />
                             </div>
-                            <h1 className="font-serif-logo text-2xl font-bold tracking-tight text-text-main">Daian</h1>
                         </Link>
                     </div>
 
@@ -185,8 +189,13 @@ export default function Header({ categories = [] }: HeaderProps) {
                         {/* Menu Header */}
                         <div className="flex items-center justify-between p-6 border-b border-border">
                             <Link href="/" onClick={() => setShowMobileMenu(false)} className="flex items-center gap-2">
-                                <span className="text-2xl">🌸</span>
-                                <span className="font-serif-logo text-2xl font-bold text-text-main">Daian</span>
+                                <div className="relative h-8 w-auto">
+                                    <img
+                                        src="/EROM-LogoHor.png"
+                                        alt="EROM Logo"
+                                        className="h-full w-auto object-contain"
+                                    />
+                                </div>
                             </Link>
                             <button
                                 onClick={() => setShowMobileMenu(false)}
@@ -262,9 +271,10 @@ export default function Header({ categories = [] }: HeaderProps) {
                                 {isAuthenticated && (
                                     <button
                                         onClick={handleLogout}
-                                        className="flex items-center justify-center gap-2 px-4 py-3 rounded-full text-red-500 hover:bg-red-50 transition-colors"
+                                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-red-500 bg-red-50 hover:bg-red-100 transition-colors font-medium"
                                     >
                                         <LogOut className="h-5 w-5" />
+                                        Cerrar Sesión
                                     </button>
                                 )}
                             </div>

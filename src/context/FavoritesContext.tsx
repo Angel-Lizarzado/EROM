@@ -2,11 +2,12 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-interface FavoriteItem {
+export interface FavoriteItem {
     id: number;
     name: string;
     priceUsd: number;
     image: string;
+    slug: string;
     addedAt: number;
 }
 

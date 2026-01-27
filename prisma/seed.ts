@@ -1,6 +1,16 @@
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
+
+function slugify(text: string): string {
+    return text
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-');
+}
 
 async function main() {
     console.log('🌱 Seeding database...');
@@ -117,7 +127,10 @@ async function main() {
 
     for (const product of products) {
         await prisma.product.create({
-            data: product,
+            data: {
+                ...product,
+                slug: slugify(product.name),
+            },
         });
     }
 

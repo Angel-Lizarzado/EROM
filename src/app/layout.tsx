@@ -1,14 +1,9 @@
 import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, Playfair_Display } from 'next/font/google';
 import './globals.css';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import ExchangeRateBadge from '@/components/ExchangeRateBadge';
 import { ExchangeRateProvider } from '@/context/ExchangeRateContext';
 import { FavoritesProvider } from '@/context/FavoritesContext';
 import { getExchangeRate } from '@/lib/exchange-rate';
-import { getCategories } from '@/actions/categories';
-import { MessageCircle } from 'lucide-react';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -21,8 +16,38 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: 'Daian - Tu Tienda Online',
-  description: 'Tienda online de moda femenina en Venezuela. Descubre nuestra colección de ropa y accesorios.',
+  title: {
+    template: '%s | EROM',
+    default: 'EROM - Tu Tienda Online de Moda en Venezuela',
+  },
+  description: 'Descubre nuestra colección exclusiva de ropa, accesorios y joyería. Envíos a todo el país con precios en Dólares y Bolívares.',
+  icons: {
+    icon: '/favicon.png', // Main favicon
+    shortcut: '/favicon.png', // Shortcut icon
+    apple: '/favicon/apple-touch-icon.png', // Apple touch icon (if it exists in that path)
+  },
+  openGraph: {
+    title: 'EROM - Tu Tienda Online',
+    description: 'Moda exclusive en Venezuela. Ropa, accesorios y más.',
+    url: 'https://erom-store.com', // Replace with actual URL if known, or leave generic
+    siteName: 'EROM',
+    images: [
+      {
+        url: '/favicon.png', // Using the large logo requested
+        width: 500,
+        height: 500,
+        alt: 'EROM Logo',
+      },
+    ],
+    locale: 'es_VE',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'EROM - Tu Tienda Online',
+    description: 'Moda exclusive en Venezuela.',
+    images: ['/favicon.png'],
+  },
 };
 
 export default async function RootLayout({
@@ -31,10 +56,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   // Fetch data on server
-  const [exchangeData, categories] = await Promise.all([
-    getExchangeRate(),
-    getCategories().catch(() => []),
-  ]);
+  const exchangeData = await getExchangeRate();
 
   return (
     <html lang="es" className={`${plusJakarta.variable} ${playfair.variable}`}>
@@ -44,26 +66,7 @@ export default async function RootLayout({
             rate={exchangeData.promedio}
             fechaActualizacion={exchangeData.fechaActualizacion}
           >
-            <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
-              <Header categories={categories} />
-              <main className="flex-1 pt-20">
-                {children}
-              </main>
-              <Footer />
-
-              {/* Exchange Rate Badge */}
-              <ExchangeRateBadge />
-
-              {/* Floating WhatsApp Button */}
-              <a
-                href="https://wa.me/573003344963"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="fixed bottom-6 right-6 z-50 flex size-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-[#25D366]/30 transition-all hover:scale-110 hover:bg-[#20bd5a]"
-              >
-                <MessageCircle className="h-7 w-7" />
-              </a>
-            </div>
+            {children}
           </ExchangeRateProvider>
         </FavoritesProvider>
       </body>

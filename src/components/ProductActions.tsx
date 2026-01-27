@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Minus, Plus, Heart } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useFavorites } from '@/context/FavoritesContext';
 import WhatsAppButton from '@/components/WhatsAppButton';
 
@@ -12,12 +13,14 @@ interface ProductActionsProps {
         priceUsd: number;
         image: string;
         stock: number;
+        slug: string; // Add slug here
     };
 }
 
 export default function ProductActions({ product }: ProductActionsProps) {
     const [quantity, setQuantity] = useState(1);
     const { isFavorite, toggleFavorite } = useFavorites();
+    const router = useRouter(); // Import useRouter
     const isInFavorites = isFavorite(product.id);
 
     const decreaseQuantity = () => {
@@ -32,12 +35,20 @@ export default function ProductActions({ product }: ProductActionsProps) {
         }
     };
 
+    const handleWhatsAppBuy = () => {
+        const message = encodeURIComponent(
+            `Hola, me interesa comprar: ${product.name} (x${quantity}) - Precio total: $${(product.priceUsd * quantity).toFixed(2)}`
+        );
+        window.open(`https://wa.me/573003344963?text=${message}`, '_blank');
+    };
+
     const handleToggleFavorite = () => {
         toggleFavorite({
             id: product.id,
             name: product.name,
             priceUsd: product.priceUsd,
             image: product.image,
+            slug: product.slug, // Pass slug
         });
     };
 
@@ -78,8 +89,8 @@ export default function ProductActions({ product }: ProductActionsProps) {
                 <button
                     onClick={handleToggleFavorite}
                     className={`size-14 flex items-center justify-center rounded-full border transition-all ${isInFavorites
-                            ? 'bg-primary border-primary text-white'
-                            : 'bg-white border-border text-text-muted hover:border-primary hover:text-primary'
+                        ? 'bg-primary border-primary text-white'
+                        : 'bg-white border-border text-text-muted hover:border-primary hover:text-primary'
                         }`}
                 >
                     <Heart className={`h-5 w-5 ${isInFavorites ? 'fill-current' : ''}`} />

@@ -152,6 +152,7 @@ export default function ProductsSection({ products }: ProductsSectionProps) {
                                 isOffer={product.isOffer}
                                 stock={product.stock}
                                 image={product.image}
+                                slug={product.slug}
                             />
                         ))}
                     </div>

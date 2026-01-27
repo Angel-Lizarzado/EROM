@@ -1,25 +1,21 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
-import { getProductById, getRelatedProducts } from '@/actions/products';
+import { getProductBySlug, getRelatedProducts } from '@/actions/products';
 import PriceDisplay from '@/components/PriceDisplay';
 import ProductActions from '@/components/ProductActions';
 import ProductCard from '@/components/ProductCard';
 import ProductGallery from '@/components/ProductGallery';
 
 interface ProductPageProps {
-    params: Promise<{ id: string }>;
+    params: Promise<{ slug: string }>;
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-    const { id } = await params;
-    const productId = parseInt(id, 10);
+    const { slug } = await params;
+    const decodedSlug = decodeURIComponent(slug);
 
-    if (isNaN(productId)) {
-        notFound();
-    }
-
-    const product = await getProductById(productId);
+    const product = await getProductBySlug(decodedSlug);
 
     if (!product) {
         notFound();
@@ -101,6 +97,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                             priceUsd: product.priceUsd,
                             image: product.image,
                             stock: product.stock,
+                            slug: product.slug,
                         }}
                     />
                 </div>
@@ -131,6 +128,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                                 isOffer={relatedProduct.isOffer}
                                 stock={relatedProduct.stock}
                                 image={relatedProduct.image}
+                                slug={relatedProduct.slug}
                             />
                         ))}
                     </div>

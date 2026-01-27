@@ -15,6 +15,7 @@ interface ProductCardProps {
     isOffer: boolean;
     stock: number;
     image: string;
+    slug: string;
 }
 
 export default function ProductCard({
@@ -26,6 +27,7 @@ export default function ProductCard({
     isOffer,
     stock,
     image,
+    slug,
 }: ProductCardProps) {
     const { isFavorite, toggleFavorite } = useFavorites();
     const isInFavorites = isFavorite(id);
@@ -33,13 +35,13 @@ export default function ProductCard({
     const handleToggleFavorite = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        toggleFavorite({ id, name, priceUsd, image });
+        toggleFavorite({ id, name, priceUsd, image, slug });
     };
 
     return (
         <div className="group relative flex flex-col rounded-xl bg-surface shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] transition-transform duration-300 hover:-translate-y-1 overflow-hidden">
             {/* Image Container */}
-            <Link href={`/product/${id}`} className="relative aspect-[4/5] w-full overflow-hidden bg-gray-100">
+            <Link href={`/product/${slug}`} className="relative aspect-[4/5] w-full overflow-hidden bg-gray-100">
                 {/* Badge */}
                 {isOffer && (
                     <div className="absolute top-3 left-3 z-10">
@@ -67,8 +69,8 @@ export default function ProductCard({
                 <button
                     onClick={handleToggleFavorite}
                     className={`absolute top-3 right-3 z-10 flex size-8 items-center justify-center rounded-full transition-all duration-300 ${isInFavorites
-                            ? 'bg-primary text-white opacity-100'
-                            : 'bg-white/80 text-text-main opacity-0 hover:bg-white hover:text-red-500 group-hover:opacity-100'
+                        ? 'bg-primary text-white opacity-100'
+                        : 'bg-white/80 text-text-main opacity-0 hover:bg-white hover:text-red-500 group-hover:opacity-100'
                         }`}
                 >
                     <Heart className={`h-5 w-5 ${isInFavorites ? 'fill-current' : ''}`} />

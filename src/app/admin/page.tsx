@@ -223,7 +223,7 @@ export default function AdminDashboard() {
                             <Store className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                            <h1 className="text-text-main text-lg font-bold leading-tight">Daian</h1>
+                            <h1 className="text-text-main text-lg font-bold leading-tight">EROM</h1>
                             <p className="text-text-muted text-xs font-medium">Venezuela Admin</p>
                         </div>
                     </div>
@@ -286,8 +286,47 @@ export default function AdminDashboard() {
                 </div>
             </aside>
 
+            {/* Mobile Bottom Navigation */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-border z-50 flex items-center justify-around p-2 pb-4 shadow-lg safe-area-pb">
+                <button
+                    onClick={() => setActiveTab('products')}
+                    className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${activeTab === 'products' ? 'text-primary' : 'text-text-muted'}`}
+                >
+                    <Package className="h-5 w-5" />
+                    <span className="text-[10px] font-medium">Inventario</span>
+                </button>
+                <button
+                    onClick={() => setActiveTab('categories')}
+                    className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${activeTab === 'categories' ? 'text-primary' : 'text-text-muted'}`}
+                >
+                    <Tag className="h-5 w-5" />
+                    <span className="text-[10px] font-medium">Categorías</span>
+                </button>
+                <button
+                    onClick={() => setActiveTab('sales')}
+                    className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${activeTab === 'sales' ? 'text-green-600' : 'text-text-muted'}`}
+                >
+                    <DollarSign className="h-5 w-5" />
+                    <span className="text-[10px] font-medium">Ventas</span>
+                </button>
+                <button
+                    onClick={() => setActiveTab('slides')}
+                    className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${activeTab === 'slides' ? 'text-primary' : 'text-text-muted'}`}
+                >
+                    <ImageIcon className="h-5 w-5" />
+                    <span className="text-[10px] font-medium">Hero</span>
+                </button>
+                <Link
+                    href="/"
+                    className="flex flex-col items-center gap-1 p-2 rounded-lg text-text-muted hover:text-primary transition-colors"
+                >
+                    <Store className="h-5 w-5" />
+                    <span className="text-[10px] font-medium">Tienda</span>
+                </Link>
+            </div>
+
             {/* Main Content */}
-            <main className="flex-1 flex flex-col h-full overflow-auto">
+            <main className="flex-1 flex flex-col h-full overflow-auto pb-24 md:pb-0">
                 {activeTab === 'products' ? (
                     <>
                         <header className="flex items-center justify-between px-8 py-6">

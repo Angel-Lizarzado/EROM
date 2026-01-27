@@ -38,9 +38,13 @@ export default function AdminLoginPage() {
             <main className="relative z-10 w-full max-w-[440px] bg-surface rounded-xl shadow-lg p-10 md:p-12 border border-border">
                 {/* Logo */}
                 <div className="flex flex-col items-center justify-center mb-10">
-                    <h1 className="font-serif-logo text-4xl md:text-5xl text-text-main font-bold tracking-tight mb-2">
-                        Daian
-                    </h1>
+                    <div className="relative h-32 w-32 mb-4">
+                        <img
+                            src="/favicon.png"
+                            alt="EROM"
+                            className="h-full w-full object-contain"
+                        />
+                    </div>
                     <p className="text-text-muted text-sm font-medium tracking-wide uppercase">
                         Admin Dashboard
                     </p>

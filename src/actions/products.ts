@@ -52,6 +52,17 @@ export async function getRelatedProducts(categoryId: number, excludeId: number, 
     }
 }
 
+
+function slugify(text: string): string {
+    return text
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')     // Replace spaces with -
+        .replace(/[^\w\-]+/g, '') // Remove all non-word chars
+        .replace(/\-\-+/g, '-');  // Replace multiple - with single -
+}
+
 export async function createProduct(data: {
     name: string;
     description: string;
@@ -65,9 +76,19 @@ export async function createProduct(data: {
     videos?: string[];
     categoryId: number;
 }): Promise<Product> {
+    let slug = slugify(data.name);
+
+    // Check for uniqueness
+    let count = 0;
+    while (await prisma.product.count({ where: { slug } }) > 0) {
+        count++;
+        slug = `${slugify(data.name)}-${count}`;
+    }
+
     const product = await prisma.product.create({
         data: {
             ...data,
+            slug,
             images: data.images || [],
             videos: data.videos || [],
         },
@@ -76,6 +97,18 @@ export async function createProduct(data: {
     revalidatePath('/');
     revalidatePath('/admin');
     return product;
+}
+
+export async function getProductBySlug(slug: string): Promise<ProductWithCategory | null> {
+    try {
+        return await prisma.product.findUnique({
+            where: { slug },
+            include: { category: true },
+        });
+    } catch (error) {
+        console.log('Error fetching product by slug', error);
+        return null;
+    }
 }
 
 export async function updateProduct(
@@ -94,10 +127,39 @@ export async function updateProduct(
         categoryId?: number;
     }
 ): Promise<Product> {
+    // If name changes, we could update slug, but usually better to keep slug stable or ask user. 
+    // For now, let's keep slug stable unless explicitly requested, or we can auto-update if name changes.
+    // Let's AUTO-UPDATE for simplicity in this MVP rebrand.
+
+    let slugUpdate = {};
+    if (data.name) {
+        let slug = slugify(data.name);
+        // Check for uniqueness (excluding current product)
+        const existing = await prisma.product.findFirst({
+            where: {
+                slug,
+                id: { not: id }
+            }
+        });
+
+        if (existing) {
+            let count = 1;
+            while (await prisma.product.count({ where: { slug: `${slug}-${count}`, id: { not: id } } }) > 0) {
+                count++;
+            }
+            slug = `${slug}-${count}`;
+        }
+        slugUpdate = { slug };
+    }
+
     const product = await prisma.product.update({
         where: { id },
-        data,
+        data: {
+            ...data,
+            ...slugUpdate,
+        },
     });
+
 
     revalidatePath('/');
     revalidatePath(`/product/${id}`);

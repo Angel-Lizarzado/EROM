@@ -8,11 +8,11 @@ export default function Footer() {
                     {/* Logo & Copyright */}
                     <div className="flex flex-col items-center md:items-start">
                         <Link href="/" className="flex items-center gap-2 mb-2">
-                            <span className="text-xl">🌸</span>
-                            <span className="font-serif-logo text-xl font-bold text-text-main">Daian</span>
+                            {/* <span className="text-xl">🌸</span> */}
+                            <span className="font-serif-logo text-xl font-bold text-text-main">EROM</span>
                         </Link>
                         <p className="text-sm text-text-muted">
-                            © {new Date().getFullYear()} Daian Venezuela. Todos los derechos reservados.
+                            © {new Date().getFullYear()} EROM Venezuela. Todos los derechos reservados.
                         </p>
                     </div>
 

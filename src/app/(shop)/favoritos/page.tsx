@@ -93,7 +93,7 @@ export default function FavoritosPage() {
                                 className="group relative bg-surface rounded-xl border border-border overflow-hidden hover:shadow-lg transition-shadow"
                             >
                                 {/* Image */}
-                                <Link href={`/product/${item.id}`}>
+                                <Link href={`/product/${item.slug}`}>
                                     <div
                                         className="aspect-square bg-cover bg-center"
                                         style={{ backgroundImage: `url('${item.image}')` }}
@@ -110,7 +110,7 @@ export default function FavoritosPage() {
 
                                 {/* Content */}
                                 <div className="p-4">
-                                    <Link href={`/product/${item.id}`}>
+                                    <Link href={`/product/${item.slug}`}>
                                         <h3 className="font-bold text-text-main hover:text-primary transition-colors">
                                             {item.name}
                                         </h3>
