@@ -22,9 +22,23 @@ export const metadata: Metadata = {
   },
   description: 'Descubre nuestra colección exclusiva de ropa, accesorios y joyería. Envíos a todo el país con precios en Dólares y Bolívares.',
   icons: {
-    icon: '/favicon.png', // Main favicon
-    shortcut: '/favicon.png', // Shortcut icon
-    apple: '/favicon/apple-touch-icon.png', // Apple touch icon (if it exists in that path)
+    icon: '/favicon.ico',
+    shortcut: '/favicon.png',
+    apple: '/favicon/apple-touch-icon.png',
+    other: [
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '16x16',
+        url: '/favicon/favicon-16x16.png',
+      },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '32x32',
+        url: '/favicon/favicon-32x32.png',
+      },
+    ],
   },
   openGraph: {
     title: 'EROM - Tu Tienda Online',
