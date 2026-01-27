@@ -11,6 +11,7 @@ export const demoProducts = [
     {
         id: 1,
         name: 'Vestido Floral Verano',
+        slug: 'vestido-floral-verano',
         description: 'Vestido ligero con estampado floral, perfecto para días soleados. Tela suave y cómoda.',
         priceUsd: 45.00,
         oldPriceUsd: 65.00,
@@ -25,6 +26,7 @@ export const demoProducts = [
     {
         id: 2,
         name: 'Blusa Elegante Blanca',
+        slug: 'blusa-elegante-blanca',
         description: 'Blusa de seda con detalles delicados. Ideal para ocasiones especiales.',
         priceUsd: 35.00,
         oldPriceUsd: null,
@@ -39,6 +41,7 @@ export const demoProducts = [
     {
         id: 3,
         name: 'Aretes Dorados Minimalistas',
+        slug: 'aretes-dorados-minimalistas',
         description: 'Juego de aretes en tono dorado con diseño minimalista y elegante.',
         priceUsd: 18.00,
         oldPriceUsd: null,
@@ -53,6 +56,7 @@ export const demoProducts = [
     {
         id: 4,
         name: 'Sandalias Casuales',
+        slug: 'sandalias-casuales',
         description: 'Sandalias cómodas para el día a día. Diseño moderno y versátil.',
         priceUsd: 28.00,
         oldPriceUsd: 38.00,
@@ -67,6 +71,7 @@ export const demoProducts = [
     {
         id: 5,
         name: 'Vestido Negro Elegante',
+        slug: 'vestido-negro-elegante',
         description: 'El clásico vestido negro que no puede faltar. Corte favorecedor y tela premium.',
         priceUsd: 55.00,
         oldPriceUsd: null,
@@ -81,6 +86,7 @@ export const demoProducts = [
     {
         id: 6,
         name: 'Collar Perlas Naturales',
+        slug: 'collar-perlas-naturales',
         description: 'Collar con perlas cultivadas de agua dulce. Elegancia atemporal.',
         priceUsd: 42.00,
         oldPriceUsd: 55.00,

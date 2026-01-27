@@ -2,37 +2,26 @@
 
 import { prisma } from '@/lib/prisma';
 import { Category } from '@prisma/client';
-import { demoCategories } from '@/lib/demo-data';
 
 export type CategoryWithCount = Category & {
     _count: { products: number };
 };
 
 export async function getCategories(): Promise<Category[]> {
-    try {
-        return await prisma.category.findMany({
-            orderBy: { name: 'asc' },
-        });
-    } catch (error) {
-        console.log('Using demo categories (database unavailable)');
-        return demoCategories as Category[];
-    }
+    return await prisma.category.findMany({
+        orderBy: { name: 'asc' },
+    });
 }
 
 export async function getCategoriesWithCount(): Promise<CategoryWithCount[]> {
-    try {
-        return await prisma.category.findMany({
-            orderBy: { name: 'asc' },
-            include: {
-                _count: {
-                    select: { products: true },
-                },
+    return await prisma.category.findMany({
+        orderBy: { name: 'asc' },
+        include: {
+            _count: {
+                select: { products: true },
             },
-        });
-    } catch (error) {
-        console.log('Using demo categories (database unavailable)');
-        return demoCategories.map(c => ({ ...c, _count: { products: 0 } })) as CategoryWithCount[];
-    }
+        },
+    });
 }
 
 export async function createCategory(name: string): Promise<Category> {

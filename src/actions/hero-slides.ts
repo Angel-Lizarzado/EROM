@@ -2,29 +2,18 @@
 
 import { prisma } from '@/lib/prisma';
 import { HeroSlide } from '@prisma/client';
-import { demoSlides } from '@/lib/demo-data';
 
 export async function getHeroSlides(): Promise<HeroSlide[]> {
-    try {
-        return await prisma.heroSlide.findMany({
-            where: { isActive: true },
-            orderBy: { order: 'asc' },
-        });
-    } catch (error) {
-        console.log('Using demo slides (database unavailable)');
-        return demoSlides.filter(s => s.isActive) as HeroSlide[];
-    }
+    return await prisma.heroSlide.findMany({
+        where: { isActive: true },
+        orderBy: { order: 'asc' },
+    });
 }
 
 export async function getAllHeroSlides(): Promise<HeroSlide[]> {
-    try {
-        return await prisma.heroSlide.findMany({
-            orderBy: { order: 'asc' },
-        });
-    } catch (error) {
-        console.log('Using demo slides (database unavailable)');
-        return demoSlides as HeroSlide[];
-    }
+    return await prisma.heroSlide.findMany({
+        orderBy: { order: 'asc' },
+    });
 }
 
 export async function createHeroSlide(data: {

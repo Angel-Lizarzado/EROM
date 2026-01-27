@@ -3,7 +3,6 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { Product, Category } from '@prisma/client';
-import { demoProducts, demoCategories } from '@/lib/demo-data';
 
 export type ProductWithCategory = Product & {
     category: Category;
@@ -11,46 +10,28 @@ export type ProductWithCategory = Product & {
 };
 
 export async function getProducts(): Promise<ProductWithCategory[]> {
-    try {
-        return await prisma.product.findMany({
-            include: { category: true },
-            orderBy: { createdAt: 'desc' },
-        });
-    } catch (error) {
-        console.log('Using demo products (database unavailable)');
-        return demoProducts as ProductWithCategory[];
-    }
+    return await prisma.product.findMany({
+        include: { category: true },
+        orderBy: { createdAt: 'desc' },
+    });
 }
 
 export async function getProductById(id: number): Promise<ProductWithCategory | null> {
-    try {
-        return await prisma.product.findUnique({
-            where: { id },
-            include: { category: true },
-        });
-    } catch (error) {
-        console.log('Using demo product (database unavailable)');
-        const product = demoProducts.find(p => p.id === id);
-        return product as ProductWithCategory | null;
-    }
+    return await prisma.product.findUnique({
+        where: { id },
+        include: { category: true },
+    });
 }
 
 export async function getRelatedProducts(categoryId: number, excludeId: number, limit = 4): Promise<ProductWithCategory[]> {
-    try {
-        return await prisma.product.findMany({
-            where: {
-                categoryId,
-                id: { not: excludeId },
-            },
-            include: { category: true },
-            take: limit,
-        });
-    } catch (error) {
-        console.log('Using demo related products (database unavailable)');
-        return demoProducts
-            .filter(p => p.categoryId === categoryId && p.id !== excludeId)
-            .slice(0, limit) as ProductWithCategory[];
-    }
+    return await prisma.product.findMany({
+        where: {
+            categoryId,
+            id: { not: excludeId },
+        },
+        include: { category: true },
+        take: limit,
+    });
 }
 
 
