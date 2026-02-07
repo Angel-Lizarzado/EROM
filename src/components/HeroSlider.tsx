@@ -67,15 +67,15 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
                 >
                     {/* Background Image */}
                     <div
-                        className="absolute right-0 top-0 h-full w-full lg:w-1/2 bg-cover bg-center opacity-10 lg:opacity-40 transition-all duration-500"
+                        className="absolute right-0 top-0 h-full w-full lg:w-1/2 bg-cover bg-center opacity-30 lg:opacity-60 transition-all duration-500"
                         style={{
                             backgroundImage: `url('${currentSlide.image}')`,
                             maskImage: 'linear-gradient(to left, black, transparent)'
                         }}
                     />
 
-                    {/* Mobile gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary-light via-primary-light/80 to-transparent lg:hidden" />
+                    {/* Mobile gradient overlay - reduced for better image visibility */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary-light/90 via-primary-light/60 to-transparent lg:hidden" />
 
                     {/* Content */}
                     <div className="relative z-10 max-w-lg">

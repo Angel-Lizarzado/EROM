@@ -70,7 +70,7 @@ export default function WhatsAppButton({
             ) : (
                 <MessageCircle className="h-5 w-5" />
             )}
-            {disabled ? 'Agotado' : 'Pedir por WhatsApp'}
+            {disabled ? 'Agotado' : 'Comprar Ahora'}
         </button>
     );
 }

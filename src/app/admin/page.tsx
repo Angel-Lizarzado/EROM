@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-    Store, Package, MessageCircle, BarChart3, Settings,
-    Plus, Search, Edit, Trash2, X, Loader2, Upload, Image as ImageIcon, Tag, DollarSign,
+    Store, Package, Plus, Search, Edit, Trash2, X, Loader2, Image as ImageIcon, Tag, DollarSign,
     ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useMediaManager } from '@/hooks/useMediaManager';
 import { getProducts, createProduct, updateProduct, deleteProduct, type ProductWithCategory } from '@/actions/products';
 import { getCategories, getCategoriesWithCount, createCategory, type CategoryWithCount } from '@/actions/categories';
 import { getAllHeroSlides } from '@/actions/hero-slides';
@@ -18,9 +18,9 @@ import { formatVes } from '@/lib/exchange-rate';
 import AdminSlidesSection from '@/components/AdminSlidesSection';
 import AdminCategoriesSection from '@/components/AdminCategoriesSection';
 import AdminSalesSection from '@/components/AdminSalesSection';
+import AdminAlibabaImporter from '@/components/AdminAlibabaImporter';
 import ImageUploader from '@/components/ImageUploader';
 import VideoUploader from '@/components/VideoUploader';
-import AdminAlibabaImporter from '@/components/AdminAlibabaImporter';
 
 interface Category {
     id: number;
@@ -66,7 +66,8 @@ export default function AdminDashboard() {
     const [saving, setSaving] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState('');
     const [activeTab, setActiveTab] = useState<'products' | 'slides' | 'categories' | 'sales'>('products');
-    const [editableMedia, setEditableMedia] = useState<string[]>([]);
+
+    const { media: editableMedia, addMedia, removeMedia, moveMedia, resetMedia } = useMediaManager();
 
     const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<ProductFormData>();
     const priceUsd = watch('priceUsd');
@@ -104,7 +105,7 @@ export default function AdminDashboard() {
 
     const openCreateModal = () => {
         setEditingProduct(null);
-        setEditableMedia([]);
+        resetMedia([]);
         reset({
             name: '',
             description: '',
@@ -120,12 +121,6 @@ export default function AdminDashboard() {
 
     const openEditModal = (product: ProductWithCategory) => {
         setEditingProduct(product);
-        // Merge existing images and videos into unified media list for sorting
-        // Note: videos field exists but we want to unify everything into 'images' on save
-        setEditableMedia([
-            ...(product.images || []),
-            ...(product.videos || [])
-        ]);
         reset({
             name: product.name,
             description: product.description,
@@ -133,28 +128,11 @@ export default function AdminDashboard() {
             oldPriceUsd: product.oldPriceUsd || undefined,
             isOffer: product.isOffer,
             stock: product.stock,
-            image: product.image,
             categoryId: product.categoryId,
+            image: product.image,
         });
+        resetMedia(product.images || []);
         setShowModal(true);
-    };
-
-    const addMedia = (url: string) => {
-        setEditableMedia(prev => [...prev, url]);
-    };
-
-    const removeMedia = (index: number) => {
-        setEditableMedia(prev => prev.filter((_, i) => i !== index));
-    };
-
-    const moveMedia = (index: number, direction: 'left' | 'right') => {
-        const newMedia = [...editableMedia];
-        if (direction === 'left' && index > 0) {
-            [newMedia[index - 1], newMedia[index]] = [newMedia[index], newMedia[index - 1]];
-        } else if (direction === 'right' && index < newMedia.length - 1) {
-            [newMedia[index + 1], newMedia[index]] = [newMedia[index], newMedia[index + 1]];
-        }
-        setEditableMedia(newMedia);
     };
 
     const onSubmit = async (data: ProductFormData) => {
@@ -574,27 +552,18 @@ export default function AdminDashboard() {
 
                                 {/* Inputs for New Media */}
                                 <div className="flex flex-col gap-2">
-                                    {/* Add Image Input */}
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="url"
-                                            placeholder="URL de imagen..."
-                                            className="flex-1 px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                            id="newImageUrl"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const input = document.getElementById('newImageUrl') as HTMLInputElement;
-                                                if (input.value) {
-                                                    addMedia(input.value);
-                                                    input.value = '';
+                                    {/* Add Image Input - with uploader */}
+                                    <div className="w-full">
+                                        <div className="text-xs font-bold text-text-main mb-1.5">+ Agregar Imagen</div>
+                                        <ImageUploader
+                                            value=""
+                                            onChange={(url) => {
+                                                if (url) {
+                                                    addMedia(url);
                                                 }
                                             }}
-                                            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
-                                        >
-                                            + Imagen
-                                        </button>
+                                            placeholder="URL o archivo de imagen..."
+                                        />
                                     </div>
 
                                     {/* Add Video Input (with Upload) */}

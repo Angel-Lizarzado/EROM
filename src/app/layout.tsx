@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, Playfair_Display } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 import { ExchangeRateProvider } from '@/context/ExchangeRateContext';
 import { FavoritesProvider } from '@/context/FavoritesContext';
@@ -81,6 +82,7 @@ export default async function RootLayout({
             fechaActualizacion={exchangeData.fechaActualizacion}
           >
             {children}
+            <Analytics />
           </ExchangeRateProvider>
         </FavoritesProvider>
       </body>

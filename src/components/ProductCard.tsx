@@ -86,7 +86,7 @@ export default function ProductCard({
             {/* Content */}
             <div className="flex flex-1 flex-col p-5">
                 <div className="mb-2">
-                    <Link href={`/product/${id}`}>
+                    <Link href={`/product/${slug}`}>
                         <h3 className="text-lg font-bold text-text-main hover:text-primary transition-colors">
                             {name}
                         </h3>
