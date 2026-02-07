@@ -19,8 +19,7 @@ import AdminSlidesSection from '@/components/AdminSlidesSection';
 import AdminCategoriesSection from '@/components/AdminCategoriesSection';
 import AdminSalesSection from '@/components/AdminSalesSection';
 import AdminAlibabaImporter from '@/components/AdminAlibabaImporter';
-import ImageUploader from '@/components/ImageUploader';
-import VideoUploader from '@/components/VideoUploader';
+import MediaUploader from '@/components/MediaUploader';
 
 interface Category {
     id: number;
@@ -477,9 +476,10 @@ export default function AdminDashboard() {
                             {/* Imagen Principal */}
                             <div>
                                 <label className="block text-sm font-bold text-text-main mb-1.5">Imagen Principal</label>
-                                <ImageUploader
+                                <MediaUploader
                                     value={watch('image') || ''}
                                     onChange={(url) => setValue('image', url)}
+                                    accept="image"
                                 />
                                 <input type="hidden" {...register('image', { required: 'La imagen es requerida' })} />
                                 {errors.image && <p className="text-red-500 text-xs mt-1">{errors.image.message}</p>}
@@ -551,34 +551,18 @@ export default function AdminDashboard() {
                                 </div>
 
                                 {/* Inputs for New Media */}
-                                <div className="flex flex-col gap-2">
-                                    {/* Add Image Input - with uploader */}
-                                    <div className="w-full">
-                                        <div className="text-xs font-bold text-text-main mb-1.5">+ Agregar Imagen</div>
-                                        <ImageUploader
-                                            value=""
-                                            onChange={(url) => {
-                                                if (url) {
-                                                    addMedia(url);
-                                                }
-                                            }}
-                                            placeholder="URL o archivo de imagen..."
-                                        />
-                                    </div>
-
-                                    {/* Add Video Input (with Upload) */}
-                                    <div className="w-full">
-                                        <div className="text-xs font-bold text-text-main mb-1.5">+ Agregar Video</div>
-                                        <VideoUploader
-                                            value=""
-                                            onChange={(url) => {
-                                                if (url) {
-                                                    addMedia(url);
-                                                }
-                                            }}
-                                            placeholder="URL o archivo mp4..."
-                                        />
-                                    </div>
+                                <div className="w-full">
+                                    <div className="text-xs font-bold text-text-main mb-1.5">+ Agregar Imagen o Video</div>
+                                    <MediaUploader
+                                        value=""
+                                        onChange={(url) => {
+                                            if (url) {
+                                                addMedia(url);
+                                            }
+                                        }}
+                                        accept="both"
+                                        placeholder="URL o archivo de imagen/video..."
+                                    />
                                 </div>
                             </div>
 

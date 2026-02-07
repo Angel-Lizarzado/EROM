@@ -22,25 +22,7 @@ export const metadata: Metadata = {
     default: 'EROM - Tu Tienda Online de Moda en Venezuela',
   },
   description: 'Descubre nuestra colección exclusiva de ropa, accesorios y joyería. Envíos a todo el país con precios en Dólares y Bolívares.',
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.png',
-    apple: '/favicon/apple-touch-icon.png',
-    other: [
-      {
-        rel: 'icon',
-        type: 'image/png',
-        sizes: '16x16',
-        url: '/favicon/favicon-16x16.png',
-      },
-      {
-        rel: 'icon',
-        type: 'image/png',
-        sizes: '32x32',
-        url: '/favicon/favicon-32x32.png',
-      },
-    ],
-  },
+  manifest: '/favicon/site.webmanifest',
   openGraph: {
     title: 'EROM - Tu Tienda Online',
     description: 'Moda exclusive en Venezuela. Ropa, accesorios y más.',
